@@ -1,0 +1,37 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.timecool.app'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.timecool.app"
+        minSdk 24
+        targetSdk 34
+        versionCode 1
+        versionName "1.0.0-test"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+        debug {
+            debuggable true
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    // L'app est volontairement minimaliste : aucune dépendance externe, juste WebView native.
+    // Tout l'UI est dans assets/index.html.
+}
+
+dependencies {
+    // Aucune dépendance — on utilise uniquement les API Android natives (WebView).
+}

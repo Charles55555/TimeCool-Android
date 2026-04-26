@@ -1,0 +1,1913 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#ffffff">
+<title>TimeCool — Démo Investisseurs v3</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+:root {
+  --g-blue:#1a73e8; --g-red:#ea4335; --g-yellow:#fbbc04; --g-green:#34a853;
+  --g-purple:#8430ce; --g-teal:#00acc1; --g-orange:#f4511e;
+  --text:#202124; --text-sec:#5f6368; --border:#dadce0;
+  --bg:#fff; --bg-soft:#f8f9fa; --bg-hover:#f1f3f4;
+}
+html,body { font-family:'Google Sans',Roboto,Arial,sans-serif; background:var(--bg); color:var(--text); height:100%; overflow:hidden; -webkit-font-smoothing:antialiased; }
+body { display:flex; flex-direction:column; }
+
+.mode-bar { display:flex; background:#fff; border-bottom:2px solid var(--border); padding:6px; }
+.mode-row-wrapper { display:flex; gap:8px; padding:8px 8px 12px; background:#fff; border-bottom:2px solid var(--border); }
+.mode-column { flex:1; display:flex; flex-direction:column; gap:6px; }
+.profile-col { display:flex; flex-direction:column; gap:4px; padding:0 4px; }
+.mode-btn { width:100%; padding:11px; border:none; border-radius:22px; background:#f1f3f4; font-size:13px; font-weight:500; color:var(--text-sec); cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; }
+.mode-btn.active { background:var(--g-blue); color:white; }
+.mode-btn svg { width:16px; height:16px; fill:currentColor; }
+
+.profile-tab { padding:7px 10px; border:1px solid var(--border); background:#fff; border-radius:14px; font-size:12px; font-weight:500; color:var(--text-sec); cursor:pointer; white-space:nowrap; text-align:center; }
+.profile-tab.active { background:#e8f0fe; color:var(--g-blue); border-color:var(--g-blue); font-weight:600; }
+
+.header { display:flex; align-items:center; padding:10px 12px; border-bottom:1px solid var(--border); background:#fff; z-index:10; gap:8px; }
+.menu-btn, .icon-btn { width:40px; height:40px; border:none; background:transparent; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; position:relative; }
+.menu-btn:hover, .icon-btn:hover { background:var(--bg-hover); }
+.menu-btn svg { width:22px; height:22px; fill:var(--text-sec); }
+.icon-btn svg { width:20px; height:20px; fill:var(--text-sec); }
+.logo { display:flex; align-items:center; gap:8px; flex:1; }
+.logo-text { font-size:20px; font-weight:700; letter-spacing:-0.5px; }
+.logo-time { color:var(--g-red); }
+.logo-cool { color:var(--g-yellow); }
+.dots { display:flex; gap:3px; margin-left:4px; }
+.dot { width:5px; height:5px; border-radius:50%; }
+.dot-b{background:var(--g-blue);} .dot-r{background:var(--g-red);}
+.dot-y{background:var(--g-yellow);} .dot-g{background:var(--g-green);}
+.header-right { display:flex; gap:4px; align-items:center; }
+.badge { position:absolute; top:4px; right:4px; background:var(--g-red); color:white; font-size:10px; font-weight:bold; min-width:16px; height:16px; border-radius:8px; display:flex; align-items:center; justify-content:center; padding:0 4px; }
+.avatar { width:32px; height:32px; border-radius:50%; color:white; display:flex; align-items:center; justify-content:center; font-weight:600; font-size:13px; }
+.avatar-user { background:linear-gradient(135deg, var(--g-blue), var(--g-purple)); }
+.avatar-pro { background:linear-gradient(135deg, var(--g-green), var(--g-teal)); }
+
+.privacy-badge { padding:7px 12px; background:#e8f0fe; color:var(--g-blue); font-size:11px; text-align:center; display:flex; align-items:center; justify-content:center; gap:6px; }
+.privacy-badge svg { width:13px; height:13px; fill:var(--g-blue); }
+
+.sub-header { display:flex; align-items:center; padding:10px 16px; gap:8px; border-bottom:1px solid var(--border); background:#fff; }
+.month-title { font-size:19px; font-weight:400; color:var(--text); flex:1; }
+.nav-btn { width:34px; height:34px; border:none; background:transparent; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+.nav-btn svg { width:18px; height:18px; fill:var(--text-sec); }
+.today-btn { padding:6px 14px; border:1px solid var(--border); background:#fff; border-radius:18px; font-size:13px; font-weight:500; color:var(--text-sec); cursor:pointer; }
+
+.view-tabs { display:flex; padding:0 8px; border-bottom:1px solid var(--border); background:#fff; }
+.tab { flex:1; padding:12px 0; text-align:center; font-size:12px; font-weight:500; color:var(--text-sec); cursor:pointer; position:relative; text-transform:uppercase; letter-spacing:0.3px; }
+.tab.active { color:var(--g-blue); }
+.tab.active::after { content:''; position:absolute; bottom:0; left:0; right:0; height:3px; background:var(--g-blue); border-radius:3px 3px 0 0; }
+
+.main { flex:1; overflow-y:auto; background:#fff; position:relative; }
+
+.week-header { display:grid; grid-template-columns:50px repeat(7,1fr); border-bottom:1px solid var(--border); position:sticky; top:0; background:#fff; z-index:5; }
+.week-day-header { padding:8px 4px; text-align:center; border-right:1px solid var(--border); }
+.week-day-header:last-child { border-right:none; }
+.week-day-name { font-size:10px; font-weight:500; color:var(--text-sec); text-transform:uppercase; letter-spacing:0.5px; }
+.week-day-num { font-size:20px; font-weight:400; color:var(--text); margin-top:2px; display:inline-flex; width:32px; height:32px; align-items:center; justify-content:center; border-radius:50%; }
+.week-day-header.today .week-day-name { color:var(--g-blue); }
+.week-day-header.today .week-day-num { background:var(--g-blue); color:white; }
+.week-day-header.closed { background:#fafafa; }
+.week-day-header.closed .week-day-name, .week-day-header.closed .week-day-num { color:#bdc1c6; }
+
+.week-body { position:relative; }
+.hour-row { display:grid; grid-template-columns:50px repeat(7,1fr); border-bottom:1px solid var(--border); min-height:44px; }
+.hour-label { font-size:10px; color:var(--text-sec); padding:2px 6px; text-align:right; border-right:1px solid var(--border); }
+.hour-cell { border-right:1px solid var(--border); position:relative; }
+.hour-cell:last-child { border-right:none; }
+.hour-cell.closed { background:repeating-linear-gradient(45deg, #f5f5f5, #f5f5f5 4px, #fafafa 4px, #fafafa 8px); }
+
+.week-event { position:absolute; left:1px; right:1px; padding:3px 4px; border-radius:3px; color:white; font-size:10px; font-weight:500; cursor:pointer; overflow:hidden; box-shadow:0 1px 2px rgba(0,0,0,0.1); }
+.week-event-title { font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.week-event-time { font-size:9px; opacity:0.9; }
+
+.chip-blue{background:var(--g-blue);} .chip-red{background:var(--g-red);}
+.chip-green{background:var(--g-green);} .chip-yellow{background:var(--g-yellow);color:#333;}
+.chip-purple{background:var(--g-purple);} .chip-orange{background:var(--g-orange);}
+.chip-teal{background:var(--g-teal);}
+.chip-yellow .week-event-title, .chip-yellow .week-event-time { color:#333; }
+
+.day-view-header { padding:12px 16px; border-bottom:1px solid var(--border); text-align:center; }
+.day-view-date { font-size:18px; }
+.day-view-day { font-size:11px; color:var(--g-blue); text-transform:uppercase; letter-spacing:1px; margin-top:4px; }
+.day-body { padding:8px 0; position:relative; }
+.day-hour { display:grid; grid-template-columns:56px 1fr; min-height:48px; border-bottom:1px solid #f1f3f4; }
+.day-hour-label { font-size:11px; color:var(--text-sec); padding:4px 8px 4px 16px; text-align:right; }
+.day-event { margin:2px 12px 2px 0; padding:8px 10px; border-radius:6px; color:white; font-size:13px; cursor:pointer; position:absolute; left:56px; right:12px; }
+.day-event-title { font-weight:600; margin-bottom:2px; }
+.day-event-time { font-size:11px; opacity:0.9; }
+
+.fab { position:fixed; bottom:20px; right:16px; width:54px; height:54px; border-radius:16px; border:none; background:#fff; box-shadow:0 4px 12px rgba(0,0,0,0.15); display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:20; }
+.fab svg { width:24px; height:24px; }
+
+.side-menu { position:fixed; top:0; left:-300px; width:280px; height:100vh; background:#fff; box-shadow:2px 0 8px rgba(0,0,0,0.1); transition:left 0.25s; z-index:100; overflow-y:auto; }
+.side-menu.open { left:0; }
+.menu-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.4); opacity:0; pointer-events:none; transition:opacity 0.25s; z-index:99; }
+.menu-overlay.open { opacity:1; pointer-events:auto; }
+.menu-header { padding:20px 16px; border-bottom:1px solid var(--border); }
+.menu-logo { font-size:24px; font-weight:700; }
+.menu-subtitle { font-size:11px; color:var(--text-sec); margin-top:4px; }
+.menu-section { padding:6px 0; border-bottom:1px solid var(--border); }
+.menu-item { display:flex; align-items:center; padding:11px 16px; cursor:pointer; gap:14px; color:var(--text); font-size:14px; }
+.menu-item:hover { background:var(--bg-hover); }
+.menu-item.active { background:#e8f0fe; color:var(--g-blue); font-weight:500; }
+.menu-item svg { width:20px; height:20px; fill:var(--text-sec); flex-shrink:0; }
+.menu-item.active svg { fill:var(--g-blue); }
+.menu-item .menu-badge { margin-left:auto; background:var(--g-red); color:white; font-size:11px; font-weight:bold; min-width:18px; height:18px; border-radius:9px; display:flex; align-items:center; justify-content:center; padding:0 5px; }
+.menu-item.pro-premium { background:linear-gradient(135deg, #fff4e0, #e8f5e9); color:#c17900; font-weight:600; }
+
+.page { display:none; flex-direction:column; height:100%; overflow-y:auto; }
+.page.active { display:flex; }
+.page-header { padding:16px; border-bottom:1px solid var(--border); background:#fff; position:sticky; top:0; z-index:5; }
+.page-title { font-size:22px; font-weight:500; }
+.page-subtitle { font-size:13px; color:var(--text-sec); margin-top:4px; }
+.page-content { padding:16px; }
+
+.profile-hero { padding:24px 16px; text-align:center; background:linear-gradient(135deg, #e8f0fe 0%, #e0f2f1 100%); }
+.profile-avatar { width:84px; height:84px; border-radius:50%; color:white; display:flex; align-items:center; justify-content:center; font-size:32px; font-weight:600; margin:0 auto 12px; }
+.profile-avatar-user { background:linear-gradient(135deg, var(--g-blue), var(--g-purple)); }
+.profile-avatar-pro { background:linear-gradient(135deg, var(--g-green), var(--g-teal)); }
+.profile-name { font-size:22px; font-weight:500; }
+.profile-sub { font-size:13px; color:var(--text-sec); margin-top:4px; }
+
+.info-section { padding:12px 0; border-bottom:8px solid var(--bg-soft); }
+.info-section-title { padding:12px 16px 8px; font-size:12px; font-weight:600; color:var(--g-blue); text-transform:uppercase; letter-spacing:0.5px; }
+.info-row { display:flex; padding:10px 16px; gap:14px; }
+.info-label { font-size:11px; color:var(--text-sec); text-transform:uppercase; letter-spacing:0.3px; margin-bottom:2px; }
+.info-value { font-size:14px; color:var(--text); }
+.info-content { flex:1; }
+.info-lock { font-size:11px; color:var(--g-green); margin-top:4px; }
+
+.card { background:#fff; border:1px solid var(--border); border-radius:12px; padding:14px; margin-bottom:10px; cursor:pointer; display:flex; align-items:center; gap:12px; }
+.card-premium { border:2px solid var(--g-blue); background:linear-gradient(135deg, #f0f7ff 0%, #fff 100%); position:relative; }
+.card-avatar { width:48px; height:48px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; font-weight:600; font-size:16px; flex-shrink:0; }
+.card-body { flex:1; min-width:0; }
+.card-title { font-size:15px; font-weight:500; }
+.card-sub { font-size:12px; color:var(--text-sec); margin-top:2px; }
+.card-meta { font-size:11px; color:var(--text-sec); margin-top:3px; }
+.card-badge { background:var(--g-red); color:white; font-size:10px; font-weight:bold; min-width:18px; height:18px; border-radius:9px; display:flex; align-items:center; justify-content:center; padding:0 5px; }
+
+.premium-star { position:absolute; top:-8px; right:-8px; background:var(--g-yellow); color:#8A6500; font-size:10px; font-weight:700; padding:4px 8px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.15); }
+
+.msg-preview { display:flex; padding:12px 16px; border-bottom:1px solid var(--border); cursor:pointer; gap:12px; }
+.msg-preview:hover { background:var(--bg-soft); }
+.msg-preview.unread { background:#e8f0fe; }
+.msg-avatar { width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; font-weight:600; font-size:15px; flex-shrink:0; }
+.msg-body { flex:1; min-width:0; }
+.msg-name { font-size:14px; font-weight:500; display:flex; justify-content:space-between; }
+.msg-time { font-size:11px; color:var(--text-sec); font-weight:400; }
+.msg-text { font-size:13px; color:var(--text-sec); margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.msg-preview.unread .msg-text { color:var(--text); font-weight:500; }
+.msg-preview.unread .msg-name { font-weight:700; }
+
+.conv-header { display:flex; align-items:center; padding:12px 16px; gap:12px; border-bottom:1px solid var(--border); background:#fff; position:sticky; top:0; z-index:5; }
+.back-btn { background:transparent; border:none; cursor:pointer; padding:4px; }
+.back-btn svg { width:22px; height:22px; fill:var(--text-sec); }
+.conv-info { flex:1; }
+.conv-name { font-size:15px; font-weight:500; }
+.conv-sub { font-size:11px; color:var(--text-sec); }
+.conv-body { flex:1; overflow-y:auto; padding:16px; background:#f5f5f5; }
+.conv-msg { max-width:85%; padding:10px 14px; border-radius:18px; margin-bottom:8px; font-size:13px; line-height:1.5; }
+.conv-msg.received { background:#fff; color:var(--text); margin-right:auto; border-bottom-left-radius:4px; }
+.conv-msg.sent { background:var(--g-blue); color:white; margin-left:auto; border-bottom-right-radius:4px; }
+.conv-time { font-size:10px; margin-top:4px; opacity:0.7; }
+.conv-timer { background:#fff4e0; border:1px solid var(--g-yellow); padding:10px 14px; border-radius:12px; margin-bottom:10px; font-size:12px; color:#b26a00; display:flex; align-items:center; gap:8px; font-weight:500; }
+
+.slot-list { display:flex; flex-direction:column; gap:8px; margin-top:8px; }
+.slot-btn { background:#fff; border:2px solid var(--g-blue); color:var(--g-blue); padding:12px; border-radius:10px; font-size:13px; font-weight:500; cursor:pointer; text-align:left; display:flex; align-items:center; gap:10px; }
+.slot-btn:hover { background:var(--g-blue); color:white; }
+.slot-btn svg { width:18px; height:18px; fill:currentColor; }
+
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); display:none; align-items:flex-end; z-index:200; }
+.modal-overlay.open { display:flex; }
+.modal { background:#fff; width:100%; border-radius:20px 20px 0 0; max-height:90vh; overflow-y:auto; animation:slideUp 0.3s; }
+@keyframes slideUp { from{transform:translateY(100%);} to{transform:translateY(0);} }
+.modal-handle { width:36px; height:4px; background:var(--border); border-radius:2px; margin:10px auto; }
+.modal-header { display:flex; align-items:center; padding:8px 16px 14px; gap:16px; border-bottom:1px solid var(--border); }
+.modal-title { flex:1; font-size:17px; font-weight:500; }
+.modal-close { border:none; background:transparent; font-size:14px; font-weight:500; padding:8px 12px; border-radius:18px; cursor:pointer; color:var(--text-sec); }
+.modal-body { padding:16px; }
+.event-detail-row { padding:10px 0; border-bottom:1px solid #eee; display:flex; gap:12px; }
+.event-detail-row:last-child { border-bottom:none; }
+.event-detail-row svg { width:18px; height:18px; fill:var(--text-sec); flex-shrink:0; margin-top:1px; }
+.event-detail-label { font-size:11px; color:var(--text-sec); text-transform:uppercase; }
+.event-detail-value { font-size:14px; margin-top:2px; }
+.btn-row { display:flex; gap:10px; padding:16px; border-top:1px solid var(--border); }
+.btn-row button { flex:1; padding:12px; border-radius:10px; font-size:14px; font-weight:500; cursor:pointer; border:none; }
+.btn-primary { background:var(--g-blue); color:white; }
+.btn-danger { background:var(--g-red); color:white; }
+.btn-secondary { background:var(--bg-soft); color:var(--text); }
+.btn-success { background:var(--g-green); color:white; }
+
+.toast { position:fixed; bottom:80px; left:50%; transform:translateX(-50%); background:#333; color:white; padding:12px 20px; border-radius:24px; font-size:13px; opacity:0; transition:opacity 0.3s; z-index:300; text-align:center; max-width:90%; }
+.toast.show { opacity:1; }
+
+.ai-search { padding:30px 20px; text-align:center; background:#e8f0fe; border-radius:14px; margin:12px 0; }
+.ai-dots { display:flex; justify-content:center; gap:6px; margin:12px 0; }
+.ai-dots span { width:10px; height:10px; border-radius:50%; animation:pulse 1.4s infinite; }
+.ai-dots span:nth-child(1){background:var(--g-blue);}
+.ai-dots span:nth-child(2){background:var(--g-red);animation-delay:0.2s;}
+.ai-dots span:nth-child(3){background:var(--g-yellow);animation-delay:0.4s;}
+.ai-dots span:nth-child(4){background:var(--g-green);animation-delay:0.6s;}
+@keyframes pulse { 0%,100%{transform:scale(0.8);opacity:0.5;} 50%{transform:scale(1.3);opacity:1;} }
+.ai-text { font-size:13px; color:var(--g-blue); font-weight:500; }
+
+/* Dashboard */
+.dash-hero { padding:20px 16px; background:linear-gradient(135deg, #e8f0fe 0%, #e0f2f1 100%); }
+.dash-month-nav { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+.dash-month-nav button { background:#fff; border:1px solid var(--border); border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+.dash-month-nav button svg { width:16px; height:16px; fill:var(--text-sec); }
+.dash-month-title { flex:1; font-size:15px; font-weight:600; text-align:center; }
+
+.big-stat { background:#fff; border-radius:14px; padding:18px; text-align:center; }
+.big-stat-value { font-size:32px; font-weight:700; color:var(--g-blue); line-height:1; }
+.big-stat-label { font-size:11px; color:var(--text-sec); margin-top:6px; text-transform:uppercase; letter-spacing:0.5px; }
+.big-stat-sub { font-size:12px; margin-top:8px; }
+
+.stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:16px; }
+.stat-card { background:#fff; border:1px solid var(--border); border-radius:12px; padding:14px; }
+.stat-card-label { font-size:11px; color:var(--text-sec); text-transform:uppercase; letter-spacing:0.3px; margin-bottom:6px; }
+.stat-card-value { font-size:22px; font-weight:600; line-height:1; }
+.stat-card-sub { font-size:11px; color:var(--text-sec); margin-top:4px; }
+.stat-up { color:var(--g-green); }
+.stat-down { color:var(--g-red); }
+
+.breakdown { background:#fff; border:1px solid var(--border); border-radius:12px; margin:16px; overflow:hidden; }
+.breakdown-title { padding:14px 16px; background:var(--bg-soft); font-size:13px; font-weight:600; color:var(--text); }
+.breakdown-row { display:flex; align-items:center; padding:12px 16px; border-top:1px solid var(--border); gap:12px; }
+.breakdown-bar { flex:1; height:8px; background:#f1f3f4; border-radius:4px; overflow:hidden; }
+.breakdown-bar-fill { height:100%; border-radius:4px; }
+.breakdown-label { font-size:12px; min-width:90px; }
+.breakdown-value { font-size:13px; font-weight:600; min-width:45px; text-align:right; }
+
+.relation-card { background:#fff; border:1px solid var(--border); border-radius:12px; padding:14px; margin-bottom:10px; }
+.relation-header { display:flex; align-items:center; gap:12px; margin-bottom:10px; }
+.relation-info { flex:1; }
+.relation-name { font-size:14px; font-weight:500; }
+.relation-job { font-size:11px; color:var(--text-sec); }
+.relation-tag { font-size:10px; font-weight:600; padding:3px 8px; border-radius:10px; }
+.tag-excellent { background:#e6f4ea; color:#1e8e3e; }
+.tag-good { background:#e8f0fe; color:#1a73e8; }
+.tag-fair { background:#fef7e0; color:#b06000; }
+.tag-issue { background:#fce8e6; color:#c5221f; }
+.relation-stats { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
+.relation-stat { text-align:center; background:var(--bg-soft); padding:8px; border-radius:8px; }
+.relation-stat-val { font-size:15px; font-weight:600; }
+.relation-stat-lbl { font-size:10px; color:var(--text-sec); margin-top:2px; }
+
+/* Search */
+.search-bar { display:flex; gap:8px; padding:12px 16px; background:#fff; border-bottom:1px solid var(--border); }
+.search-input { flex:1; padding:10px 14px; border:1px solid var(--border); border-radius:24px; font-size:14px; background:var(--bg-soft); outline:none; }
+.search-input:focus { border-color:var(--g-blue); background:#fff; }
+.search-btn { padding:10px 16px; border:none; background:var(--g-blue); color:white; border-radius:24px; font-size:13px; font-weight:500; cursor:pointer; }
+
+.search-result { background:#fff; border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:12px; }
+.search-result.partner { border:2px solid var(--g-blue); position:relative; box-shadow:0 4px 12px rgba(26,115,232,0.15); }
+.partner-badge { background:var(--g-yellow); color:#8A6500; font-size:10px; font-weight:700; padding:4px 10px; border-radius:12px; display:inline-block; margin-bottom:8px; }
+.search-name { font-size:16px; font-weight:600; }
+.search-job { font-size:12px; color:var(--text-sec); margin-top:2px; }
+.search-addr { font-size:12px; color:var(--text-sec); margin-top:6px; display:flex; gap:4px; align-items:center; }
+.search-contact { font-size:12px; margin-top:4px; color:var(--text-sec); }
+.search-actions { display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }
+.search-action { padding:8px 12px; border-radius:20px; font-size:12px; font-weight:500; cursor:pointer; border:1px solid var(--border); background:#fff; color:var(--text); display:flex; align-items:center; gap:4px; }
+.search-action-primary { background:var(--g-blue); color:white; border-color:var(--g-blue); }
+.search-action-ext { background:#fff4e0; color:#b26a00; border-color:var(--g-yellow); }
+.search-invite { font-size:11px; color:var(--g-blue); margin-top:10px; text-align:center; padding:6px; background:#f0f7ff; border-radius:8px; cursor:pointer; }
+
+.premium-screen { padding:20px 16px; }
+.premium-hero { background:linear-gradient(135deg, #fff4e0, #e8f5e9); padding:24px; border-radius:16px; text-align:center; margin-bottom:16px; }
+.premium-title { font-size:22px; font-weight:700; color:#c17900; margin-bottom:8px; }
+.premium-sub { font-size:13px; color:var(--text-sec); }
+.premium-features { background:#fff; border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:12px; }
+.premium-feat { display:flex; gap:10px; align-items:flex-start; padding:8px 0; font-size:13px; }
+.premium-feat-icon { color:var(--g-green); font-weight:bold; }
+.premium-price { background:var(--g-blue); color:white; padding:16px; border-radius:12px; text-align:center; margin-bottom:12px; }
+.premium-price-big { font-size:28px; font-weight:700; }
+.premium-price-sub { font-size:12px; opacity:0.9; margin-top:4px; }
+.premium-fomo { background:var(--g-red); color:white; padding:12px; border-radius:10px; text-align:center; font-size:13px; font-weight:500; }
+
+/* Visible/Invisible banners for client detail */
+.visible-banner { padding:12px 16px; background:#e6f4ea; color:#1e8e3e; font-size:12px; font-weight:500; }
+.invisible-banner { padding:12px 16px; background:#fce8e6; color:#c5221f; font-size:12px; font-weight:500; }
+
+::-webkit-scrollbar { width:6px; height:6px; }
+::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+.hidden { display:none !important; }
+</style>
+</head>
+<body>
+
+<div class="mode-row-wrapper">
+  <div class="mode-column">
+    <button class="mode-btn active" id="btnModeUser" onclick="switchMode('user')">
+      <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+      Particulier
+    </button>
+    <div class="profile-col" id="profileColUser">
+      <button class="profile-tab active" data-profile="jean" onclick="switchProfile('jean')">Jean Dupont</button>
+      <button class="profile-tab" data-profile="marie" onclick="switchProfile('marie')">Marie Dupont</button>
+    </div>
+  </div>
+  <div class="mode-column">
+    <button class="mode-btn" id="btnModePro" onclick="switchMode('pro')">
+      <svg viewBox="0 0 24 24"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/></svg>
+      Professionnel
+    </button>
+    <div class="profile-col" id="profileColPro" style="display:none;">
+      <button class="profile-tab active" data-profile="martin" onclick="switchProfile('martin')">Dr. Martin</button>
+      <button class="profile-tab" data-profile="blanc" onclick="switchProfile('blanc')">Me. Blanc</button>
+    </div>
+  </div>
+</div>
+
+<header class="header">
+  <button class="menu-btn" onclick="toggleMenu()">
+    <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+  </button>
+  <div class="logo">
+    <span class="logo-text"><span class="logo-time">TIME</span><span class="logo-cool">COOL</span></span>
+    <div class="dots"><div class="dot dot-b"></div><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+  </div>
+  <div class="header-right">
+    <button class="icon-btn" onclick="navigate('messages')">
+      <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+      <span class="badge" id="headerBadge">0</span>
+    </button>
+    <div class="avatar avatar-user" id="headerAvatar">JD</div>
+  </div>
+</header>
+
+<div class="privacy-badge">
+  <svg viewBox="0 0 24 24"><path d="M12 1 3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+  Chiffrement de bout en bout — vos données restent privées
+</div>
+
+<!-- CALENDAR -->
+<div class="page active" id="page-calendar">
+  <div class="sub-header">
+    <button class="nav-btn" onclick="prevPeriod()"><svg viewBox="0 0 24 24"><path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg></button>
+    <div class="month-title" id="monthTitle"></div>
+    <button class="nav-btn" onclick="nextPeriod()"><svg viewBox="0 0 24 24"><path d="M10 6 8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg></button>
+    <button class="today-btn" onclick="goToToday()">Auj.</button>
+  </div>
+  <div class="view-tabs">
+    <div class="tab" onclick="switchView('day')">Jour</div>
+    <div class="tab active" onclick="switchView('week')">Semaine</div>
+  </div>
+  <div class="main">
+    <div id="weekView">
+      <div class="week-header" id="weekHeader"></div>
+      <div class="week-body" id="weekBody"></div>
+    </div>
+    <div id="dayView" class="hidden">
+      <div class="day-view-header"><div class="day-view-date" id="dayDate"></div><div class="day-view-day" id="dayName"></div></div>
+      <div class="day-body" id="dayBody"></div>
+    </div>
+  </div>
+  <button class="fab" onclick="openCreateModal()"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19" stroke="#4285f4" stroke-width="3" stroke-linecap="round"/><line x1="5" y1="12" x2="19" y2="12" stroke="#34a853" stroke-width="3" stroke-linecap="round"/></svg></button>
+</div>
+
+<!-- PROFILE -->
+<div class="page" id="page-profile"><div class="main"><div id="profileContent"></div></div></div>
+
+<!-- PROS/CLIENTS -->
+<div class="page" id="page-pros">
+  <div class="page-header">
+    <div class="page-title" id="prosTitle">Mes Professionnels</div>
+    <div class="page-subtitle" id="prosSubtitle">Vos professionnels de confiance</div>
+  </div>
+  <div class="search-bar" id="searchBar">
+    <input type="text" class="search-input" id="searchInput" placeholder="🔍 Rechercher un métier (ex: dermatologue)">
+    <button class="search-btn" onclick="doSearch()">Chercher</button>
+  </div>
+  <div class="main"><div class="page-content" id="prosList"></div></div>
+</div>
+
+<!-- MESSAGES -->
+<div class="page" id="page-messages">
+  <div class="page-header">
+    <div class="page-title">Ma Messagerie</div>
+    <div class="page-subtitle">🔒 Chiffrée de bout en bout</div>
+  </div>
+  <div class="main"><div id="messagesList"></div></div>
+</div>
+
+<!-- CONVERSATION -->
+<div class="page" id="page-conv">
+  <div class="conv-header">
+    <button class="back-btn" onclick="navigate('messages')"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button>
+    <div class="msg-avatar" id="convAvatar" style="width:36px;height:36px;font-size:13px;"></div>
+    <div class="conv-info"><div class="conv-name" id="convName"></div><div class="conv-sub">🔒 Chiffré</div></div>
+  </div>
+  <div class="conv-body" id="convBody"></div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="page" id="page-dashboard">
+  <div class="main"><div id="dashContent"></div></div>
+</div>
+
+<!-- PREMIUM -->
+<div class="page" id="page-premium">
+  <div class="page-header">
+    <div class="page-title">Devenir Partenaire</div>
+    <div class="page-subtitle">L'offre réservée aux 1 000 premiers professionnels</div>
+  </div>
+  <div class="main"><div class="premium-screen" id="premiumContent"></div></div>
+</div>
+
+<!-- SIDE MENU -->
+<div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
+<aside class="side-menu" id="sideMenu">
+  <div class="menu-header">
+    <div class="menu-logo"><span class="logo-time">TIME</span><span class="logo-cool">COOL</span></div>
+    <div class="menu-subtitle" id="menuSubtitle">Mode Particulier</div>
+  </div>
+  <div class="menu-section" id="menuItems"></div>
+</aside>
+
+<!-- CREATE EVENT MODAL -->
+<div class="modal-overlay" id="createModal" onclick="if(event.target===this)closeCreateModal()">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <button class="modal-close" onclick="closeCreateModal()">Annuler</button>
+      <div class="modal-title">Nouveau</div>
+      <button class="modal-close" style="background:var(--g-blue); color:white;" onclick="saveNewEvent()">Enregistrer</button>
+    </div>
+    <div class="modal-body">
+      <div style="padding:10px 0; border-bottom:1px solid #eee;">
+        <div class="info-label">Titre</div>
+        <input type="text" id="newEvtTitle" placeholder="Ajouter un titre" style="width:100%; border:none; outline:none; font-size:16px; padding:6px 0; color:var(--text); background:transparent;">
+      </div>
+      <div style="padding:10px 0; border-bottom:1px solid #eee;">
+        <div class="info-label">Type</div>
+        <select id="newEvtType" style="width:100%; border:none; outline:none; font-size:14px; padding:6px 0; background:transparent;">
+          <option value="blue">📋 Personnel</option>
+          <option value="red">🏥 Santé</option>
+          <option value="green">💼 Professionnel</option>
+          <option value="yellow">👨‍👩‍👧 Famille</option>
+          <option value="purple">🏃 Sport / Loisir</option>
+          <option value="teal">🚆 Transport</option>
+          <option value="orange">✂️ Service</option>
+        </select>
+      </div>
+      <div style="display:flex; gap:10px; padding:10px 0; border-bottom:1px solid #eee;">
+        <div style="flex:1;">
+          <div class="info-label">Date</div>
+          <input type="date" id="newEvtDate" value="2026-04-22" style="width:100%; border:none; outline:none; font-size:14px; padding:6px 0; background:transparent;">
+        </div>
+      </div>
+      <div style="display:flex; gap:10px; padding:10px 0; border-bottom:1px solid #eee;">
+        <div style="flex:1;">
+          <div class="info-label">Début</div>
+          <input type="time" id="newEvtStart" value="14:00" style="width:100%; border:none; outline:none; font-size:14px; padding:6px 0; background:transparent;">
+        </div>
+        <div style="flex:1;">
+          <div class="info-label">Fin</div>
+          <input type="time" id="newEvtEnd" value="15:00" style="width:100%; border:none; outline:none; font-size:14px; padding:6px 0; background:transparent;">
+        </div>
+      </div>
+      <div style="padding:10px 0;">
+        <div class="info-label">Description (optionnel)</div>
+        <textarea id="newEvtDesc" placeholder="Ajouter une note..." style="width:100%; border:none; outline:none; font-size:14px; padding:6px 0; background:transparent; resize:none; min-height:40px;"></textarea>
+      </div>
+      <div style="padding:10px 16px; background:#e8f0fe; border-radius:8px; font-size:11px; color:var(--g-blue); margin-top:10px;">
+        🔒 Cet événement sera chiffré et synchronisé avec votre agenda.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- GROUP RDV MODAL -->
+<div class="modal-overlay" id="groupModal" onclick="if(event.target===this)closeGroupModal()">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <button class="modal-close" onclick="closeGroupModal()">Fermer</button>
+      <div class="modal-title">🎯 RDV de groupe</div>
+    </div>
+    <div class="modal-body" id="groupBody"></div>
+  </div>
+</div>
+
+<!-- SETTINGS PAGE -->
+<div class="page" id="page-settings">
+  <div class="page-header">
+    <div class="page-title" id="settingsTitle">Paramètres</div>
+    <div class="page-subtitle">Configurez votre expérience TimeCool</div>
+  </div>
+  <div class="main"><div class="page-content" id="settingsContent"></div></div>
+</div>
+
+<!-- ASSISTANT PAGE -->
+<div class="page" id="page-assistant">
+  <div class="conv-header">
+    <button class="back-btn" onclick="navigate('settings')"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button>
+    <div class="msg-avatar" style="width:36px;height:36px;font-size:16px; background:linear-gradient(135deg, var(--g-blue), var(--g-green));">🤖</div>
+    <div class="conv-info"><div class="conv-name">Assistant TimeCool</div><div class="conv-sub">🔒 Configuration privée</div></div>
+  </div>
+  <div class="conv-body" id="assistantBody" style="background:#f5f5f5;"></div>
+</div>
+
+<!-- EVENT MODAL -->
+<div class="modal-overlay" id="eventModal" onclick="if(event.target===this)closeEventModal()">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <button class="modal-close" onclick="closeEventModal()">Fermer</button>
+      <div class="modal-title" id="emTitle">Rendez-vous</div>
+    </div>
+    <div class="modal-body" id="emBody"></div>
+    <div class="btn-row" id="emActions"></div>
+  </div>
+</div>
+
+<!-- CLIENT DETAIL MODAL -->
+<div class="modal-overlay" id="clientModal" onclick="if(event.target===this)closeClientModal()">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <button class="modal-close" onclick="closeClientModal()">Fermer</button>
+      <div class="modal-title" id="clientModalTitle">Fiche patient</div>
+    </div>
+    <div id="clientModalBody"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══ STATE ═══
+let mode = 'user';
+let currentPage = 'calendar';
+let viewDate = new Date(2026, 3, 19);
+let today = new Date(2026, 3, 19);
+let currentView = 'week';
+let dashMonth = new Date(2026, 3, 1);
+
+// ═══ DATA ═══
+const userProfile = {
+  firstName:'Jean', lastName:'Dupont', birth:'15/03/1985', age:40, gender:'Homme',
+  email:'jean.dupont@email.fr', phone:'06 12 34 56 78', phoneFix:'01 23 45 67 89',
+  address:'15 avenue des Fleurs', addr2:'Appartement 3B', zip:'75001', city:'Paris',
+  ssn:'1 85 03 75 123 456 78', mutual:'MGEN — 123 456 789', bloodType:'A+', allergies:'Pénicilline',
+  emergency:'Marie Dupont (épouse) — 06 98 76 54 32',
+  cni:'FR 123 456 789', passport:'FR 987 654 321',
+  bank:'BNP Paribas', iban:'FR76 **** **** **** **** 123',
+  job:'Cadre commercial', company:'TechCorp SA',
+  family:'Marié — 2 enfants (Lucas 8 ans, Emma 5 ans)'
+};
+
+const proProfile = {
+  name:'Dr. Thomas Martin', job:'Chirurgien-Dentiste',
+  cabinet:'Cabinet Dentaire Martin', address:'12 rue de la Paix, 75001 Paris',
+  email:'cabinet@dr-martin.fr', phone:'01 42 33 44 55',
+  siret:'123 456 789 00012', rpps:'10 123 456 789',
+  hours:'Lundi, Mardi, Mercredi, Vendredi — 9h-18h',
+  closed:'Jeudi, Samedi, Dimanche'
+};
+
+const userPros = [
+  {id:1, name:'Dr. Thomas Martin', job:'Dentiste', city:'Paris 1er', icon:'🦷', color:'#ea4335'},
+  {id:2, name:'Dr. Sophie Lambert', job:'Ophtalmologue', city:'Paris 8e', icon:'👁️', color:'#1a73e8'},
+  {id:3, name:'Dr. Henri Dubois', job:'Médecin généraliste', city:'Paris 1er', icon:'⚕️', color:'#ea4335'},
+  {id:4, name:'Me. Claire Blanc', job:'Avocate', city:'Paris 16e', icon:'⚖️', color:'#8430ce'},
+  {id:5, name:'M. Lefebvre', job:'Expert-comptable', city:'Paris 9e', icon:'💼', color:'#34a853'},
+  {id:6, name:'Mme. Legrand', job:'Conseillère BNP', city:'Paris 2e', icon:'🏦', color:'#34a853'},
+  {id:7, name:'Marc — Studio Hair', job:'Coiffeur', city:'Paris 1er', icon:'✂️', color:'#f4511e'}
+];
+
+const proClients = [
+  {id:1, name:'Jean Dupont', age:40, ssn:'1 85 03 75 *** *** **', mutual:'MGEN', allergies:'Pénicilline', phone:'06 12 34 56 78', blood:'A+', rdvs:8, punctual:8, noshow:0},
+  {id:2, name:'Marie Leblanc', age:35, ssn:'2 90 05 75 *** *** **', mutual:'MGEN', allergies:'Aucune', phone:'06 22 33 44 55', blood:'O+', rdvs:6, punctual:6, noshow:0},
+  {id:3, name:'Pierre Bernard', age:52, ssn:'1 72 11 75 *** *** **', mutual:'Harmonie', allergies:'Pénicilline ⚠️', phone:'06 33 44 55 66', blood:'B+', rdvs:12, punctual:10, noshow:1},
+  {id:4, name:'Sophie Petit', age:28, ssn:'2 96 08 75 *** *** **', mutual:'MGEN', allergies:'Aucune', phone:'06 44 55 66 77', blood:'A+', rdvs:4, punctual:4, noshow:0},
+  {id:5, name:'Mme Rousseau', age:38, ssn:'2 86 02 75 *** *** **', mutual:'Harmonie', allergies:'Aucune', phone:'06 55 66 77 88', blood:'O+', rdvs:9, punctual:6, noshow:2},
+  {id:6, name:'Thomas Lefèvre', age:60, ssn:'1 64 06 75 *** *** **', mutual:'MGEN', allergies:'Diabétique ⚠️', phone:'06 77 88 99 00', blood:'AB+', rdvs:15, punctual:14, noshow:0}
+];
+
+// USER relations stats (private, computed by TimeCool AI)
+const userRelations = [
+  {proId:1, name:'Dr. Thomas Martin', job:'Dentiste', rdvs:8, punctuality:100, avgDelay:3, tag:'excellent', label:'Excellent'},
+  {proId:2, name:'Dr. Sophie Lambert', job:'Ophtalmologue', rdvs:3, punctuality:100, avgDelay:5, tag:'excellent', label:'Excellent'},
+  {proId:3, name:'Dr. Henri Dubois', job:'Médecin', rdvs:5, punctuality:100, avgDelay:2, tag:'excellent', label:'Excellent'},
+  {proId:4, name:'Me. Claire Blanc', job:'Avocate', rdvs:3, punctuality:100, avgDelay:2, tag:'excellent', label:'Excellent'},
+  {proId:5, name:'M. Lefebvre', job:'Comptable', rdvs:4, punctuality:75, avgDelay:15, tag:'fair', label:'Correct'},
+  {proId:7, name:'Marc — Studio Hair', job:'Coiffeur', rdvs:6, punctuality:50, avgDelay:28, tag:'issue', label:'À surveiller'}
+];
+
+// Events
+let events = generateEvents();
+
+function generateEvents() {
+  const evts = [];
+  // Semaine type qui se répète avril-mai pour Jean
+  const weekTemplate = [
+    // Lun
+    [[8,0,8,30,'Trajet bureau','blue'], [9,30,11,0,'Réunion équipe','green'], [12,30,13,30,'Déjeuner client','green'], [14,0,15,30,'Point commercial','green'], [16,0,17,0,'🔴 École enfants','yellow'], [18,30,20,0,'Sport','purple']],
+    // Mar
+    [[8,30,9,0,'Trajet bureau','blue'], [10,0,11,0,'Appel Dubois','green'], [12,0,13,0,'Déjeuner équipe','green'], [15,30,16,0,'Planning hebdo','green'], [16,0,17,0,'🔴 École enfants','yellow'], [19,0,21,0,'Dîner famille','yellow']],
+    // Mer
+    [[9,0,10,0,'Réunion direction','green'], [10,0,12,0,'💼 RDV comptable','green'], [14,30,15,30,'🦷 Dr. Martin','red'], [16,0,17,0,'🔴 École enfants','yellow'], [20,0,22,0,'Soirée amis','blue']],
+    // Jeu
+    [[8,30,9,0,'Trajet bureau','blue'], [11,0,12,30,'Présentation projet','green'], [13,0,14,0,'Déjeuner client','green'], [15,0,16,0,'Appels pros','green'], [16,0,17,0,'🔴 École enfants','yellow'], [18,0,19,30,'Sport','purple']],
+    // Ven
+    [[9,0,10,0,'Point hebdo','green'], [11,0,12,30,'Appels clients','green'], [13,0,14,0,'Déjeuner équipe','green'], [15,0,16,0,'Reporting','green'], [16,0,17,0,'🔴 École enfants','yellow'], [20,0,22,0,'Sortie couple','yellow']],
+    // Sam
+    [[9,0,11,0,'Courses','orange'], [14,0,16,0,'Sport enfants','yellow'], [20,0,22,0,'Dîner famille','yellow']],
+    // Dim
+    [[10,0,12,0,'Brunch famille','yellow'], [15,0,17,0,'Balade','yellow']]
+  ];
+
+  // Génère du 1er avril au 31 mai 2026
+  const start = new Date(2026, 3, 1);
+  for (let offset = 0; offset < 61; offset++) {
+    const d = new Date(start);
+    d.setDate(start.getDate() + offset);
+    const dayIdx = (d.getDay() + 6) % 7; // Lun=0
+    const template = weekTemplate[dayIdx];
+    template.forEach(([sh, sm, eh, em, title, cat]) => {
+      // Skip RDV dentiste du mercredi sauf pour le 22 avril (RDV principal de démo)
+      if (title === '🦷 Dr. Martin' && fmt(d) !== '2026-04-22') return;
+      evts.push({
+        date: fmt(d), startH:sh, startM:sm, endH:eh, endM:em,
+        title, cat, mode:'user', id:'u'+evts.length
+      });
+    });
+  }
+
+  // Ajoute quelques RDV santé plus rares
+  [{date:'2026-04-02', h:14, m:0, title:'👁️ Dr. Lambert — Ophtalmo', cat:'red'},
+   {date:'2026-04-08', h:10, m:0, title:'⚕️ Dr. Dubois — Médecin', cat:'red'},
+   {date:'2026-05-06', h:15, m:0, title:'✂️ Marc — Coiffeur', cat:'orange'},
+   {date:'2026-04-15', h:11, m:0, title:'🏦 RDV Banque', cat:'green'},
+   {date:'2026-04-30', h:16, m:30, title:'⚖️ Me. Blanc — Avocate', cat:'purple'},
+   {date:'2026-05-14', h:9, m:0, title:'🚆 Train Paris-Lyon', cat:'teal'}
+  ].forEach(r => {
+    evts.push({date:r.date, startH:r.h, startM:r.m, endH:r.h+1, endM:r.m, title:r.title, cat:r.cat, mode:'user', id:'u'+evts.length});
+  });
+
+  // Agenda du Dr. Martin
+  const monNames = ['Mme Moreau','M. Garcia','Mme Dubois','M. Klein','Mme Petit','M. Bernard','Mme Roux','M. Thomas','Mme Leblanc','M. Weber','Mme Durand','M. Simon','Mme Laurent','M. Richard','Mme Fournier'];
+  const tueNames = ['Mme Roche','M. Albert','Mme Pascal','M. Leroy','Mme Morel','M. Girard','Mme Noel','M. Brun','Mme Collin','M. Perrin','Mme Vincent','M. David','Mme Bertrand','M. Mercier','Mme Faure'];
+  const wedNames = ['Mme Caron','M. Blanc','Mme Schmitt','M. Robin','Mme Gauthier','M. Lemaire','Mme Gaillard','M. Arnaud','Mme Muller','Jean Dupont','Mme Perez','M. Lopez','Mme Sanchez','M. Dumas','Mme Renault'];
+  const friNames = ['Mme Colin','M. Lemoine','Mme Blanchard','M. Picard','Mme Olivier','M. Philippe','Mme Aubert','M. Denis','Mme Benoit','M. Joly','Mme Barbier','M. Hubert'];
+
+  function fillDay(date, names) {
+    names.forEach((name, i) => {
+      const h = 9 + Math.floor(i * 30 / 60);
+      const m = (i * 30) % 60;
+      evts.push({
+        date, startH:h, startM:m, endH:h+Math.floor((m+30)/60), endM:(m+30)%60,
+        title:name, cat:'red', mode:'pro', id:'p'+evts.length, isJean:(name==='Jean Dupont')
+      });
+    });
+  }
+  fillDay('2026-04-20', monNames);
+  fillDay('2026-04-21', tueNames);
+  fillDay('2026-04-22', wedNames);
+  fillDay('2026-04-24', friNames);
+
+  // Lundi 27 : 8/15 rempli
+  const mon27 = ['Mme Alpha','M. Beta','Mme Gamma','M. Delta','Mme Epsilon','M. Zeta','Mme Eta','M. Theta'];
+  mon27.forEach((name, i) => {
+    const h = 9 + Math.floor(i * 30 / 60);
+    const m = (i * 30) % 60;
+    evts.push({date:'2026-04-27', startH:h, startM:m, endH:h+Math.floor((m+30)/60), endM:(m+30)%60, title:name, cat:'red', mode:'pro', id:'p'+evts.length});
+  });
+
+  // Mardi 28 : 12/15 avec 14h-15h libre
+  const tue28 = ['Mme A','M. B','Mme C','M. D','Mme E','M. F','Mme G','M. H','Mme I','M. J','Mme K','M. L'];
+  const slots28 = [[9,0],[9,30],[10,0],[10,30],[11,0],[11,30],[15,0],[15,30],[16,0],[16,30],[17,0],[17,30]];
+  tue28.forEach((name, i) => {
+    const [h, m] = slots28[i];
+    evts.push({date:'2026-04-28', startH:h, startM:m, endH:h+Math.floor((m+30)/60), endM:(m+30)%60, title:name, cat:'red', mode:'pro', id:'p'+evts.length});
+  });
+
+  return evts;
+}
+
+// Messages
+let messages = {
+  user: [
+    {id:1, with:'Dr. Thomas Martin', avatar:'TM', color:'#ea4335', unread:0, icon:'🦷',
+     thread:[{from:'them', text:'Bonjour M. Dupont, confirmation de votre RDV du 22 avril à 14h30.', time:'Lun. 09:30'}]},
+    {id:2, with:'M. Lefebvre — Comptable', avatar:'ML', color:'#34a853', unread:0, icon:'💼',
+     thread:[{from:'them', text:'Confirmation RDV comptable.', time:'Hier'}]}
+  ],
+  pro: [
+    {id:101, with:'Jean Dupont', avatar:'JD', color:'#1a73e8', unread:0, icon:'👤',
+     thread:[{from:'me', text:'Bonjour M. Dupont, confirmation de votre RDV du 22 avril à 14h30.', time:'Lun. 09:30'}]},
+    {id:102, with:'Mme Rousseau', avatar:'MR', color:'#8430ce', unread:0, icon:'👤',
+     thread:[{from:'them', text:'Merci pour le RDV.', time:'Hier'}]}
+  ]
+};
+
+// Menu items per mode
+const menuItems = {
+  user: [
+    {id:'calendar', icon:'📅', label:'Mon agenda'},
+    {id:'dashboard', icon:'📊', label:'Mon dashboard'},
+    {id:'profile', icon:'👤', label:'Mon profil'},
+    {id:'pros', icon:'🌐', label:'Mes professionnels'},
+    {id:'messages', icon:'💬', label:'Ma messagerie', badge:true}
+  ],
+  pro: [
+    {id:'calendar', icon:'📅', label:'Mon agenda'},
+    {id:'dashboard', icon:'📊', label:'Mon dashboard'},
+    {id:'profile', icon:'🏥', label:'Mon cabinet'},
+    {id:'pros', icon:'👥', label:'Mes clients'},
+    {id:'messages', icon:'💬', label:'Ma messagerie', badge:true},
+    {id:'premium', icon:'💎', label:'Devenir Partenaire Premium', premium:true}
+  ]
+};
+
+const MONTHS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+const DAYS_FULL = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+const DAYS_SHORT = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
+
+function fmt(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function sameDay(a,b) { return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
+function isProClosed(dayIdx) { return dayIdx===3||dayIdx===5||dayIdx===6; }
+
+// ═══ MODE SWITCH ═══
+function switchMode(m) {
+  mode = m;
+  document.getElementById('btnModeUser').classList.toggle('active', m==='user');
+  document.getElementById('btnModePro').classList.toggle('active', m==='pro');
+  const avatar = document.getElementById('headerAvatar');
+  avatar.className = 'avatar ' + (m==='user'?'avatar-user':'avatar-pro');
+  avatar.textContent = m==='user'?'JD':'TM';
+  document.getElementById('menuSubtitle').textContent = m==='user'?'Jean Dupont — Particulier':'Dr. Martin — Professionnel';
+  renderMenu();
+  updateBadges();
+  // Refresh current page
+  if (currentPage==='calendar') render();
+  else if (currentPage==='profile') renderProfile();
+  else if (currentPage==='pros') renderPros();
+  else if (currentPage==='messages') renderMessages();
+  else if (currentPage==='dashboard') renderDashboard();
+  else if (currentPage==='premium') renderPremium();
+  showToast(m==='user'?'👤 Mode Particulier':'💼 Mode Professionnel');
+}
+
+function renderMenu() {
+  const items = menuItems[mode];
+  document.getElementById('menuItems').innerHTML = items.map(it => `
+    <div class="menu-item ${it.premium?'pro-premium':''}" onclick="navigate('${it.id}')">
+      <span style="font-size:20px; flex-shrink:0;">${it.icon}</span>
+      <span>${it.label}</span>
+      ${it.badge?`<span class="menu-badge" id="menuBadge" style="display:none;">0</span>`:''}
+    </div>
+  `).join('');
+}
+
+// ═══ MENU ═══
+function toggleMenu() {
+  document.getElementById('sideMenu').classList.toggle('open');
+  document.getElementById('menuOverlay').classList.toggle('open');
+}
+
+// ═══ NAVIGATION ═══
+function navigate(page) {
+  currentPage = page;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.getElementById('sideMenu').classList.remove('open');
+  document.getElementById('menuOverlay').classList.remove('open');
+  if (page==='calendar') render();
+  else if (page==='profile') renderProfile();
+  else if (page==='pros') renderPros();
+  else if (page==='messages') renderMessages();
+  else if (page==='dashboard') renderDashboard();
+  else if (page==='premium') renderPremium();
+}
+
+// ═══ CALENDAR ═══
+function switchView(v) {
+  currentView = v;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab')[v==='day'?0:1].classList.add('active');
+  document.getElementById('weekView').classList.toggle('hidden', v!=='week');
+  document.getElementById('dayView').classList.toggle('hidden', v!=='day');
+  render();
+}
+
+function prevPeriod() { if (currentView==='week') viewDate.setDate(viewDate.getDate()-7); else viewDate.setDate(viewDate.getDate()-1); render(); }
+function nextPeriod() { if (currentView==='week') viewDate.setDate(viewDate.getDate()+7); else viewDate.setDate(viewDate.getDate()+1); render(); }
+function goToToday() { viewDate = new Date(today); render(); }
+
+function render() {
+  document.getElementById('monthTitle').textContent = `${MONTHS[viewDate.getMonth()]} ${viewDate.getFullYear()}`;
+  if (currentView==='week') renderWeek(); else renderDay();
+}
+
+function renderWeek() {
+  const header = document.getElementById('weekHeader');
+  const body = document.getElementById('weekBody');
+  header.innerHTML = '<div></div>';
+  body.innerHTML = '';
+  const d0 = new Date(viewDate);
+  const wd = (d0.getDay()+6)%7;
+  d0.setDate(d0.getDate()-wd);
+  const weekDates = [];
+  for (let i=0; i<7; i++) {
+    const d = new Date(d0);
+    d.setDate(d0.getDate()+i);
+    weekDates.push(d);
+    const col = document.createElement('div');
+    col.className = 'week-day-header';
+    if (sameDay(d, today)) col.classList.add('today');
+    if (mode==='pro' && isProClosed(i)) col.classList.add('closed');
+    col.innerHTML = `<div class="week-day-name">${DAYS_SHORT[i]}</div><div class="week-day-num">${d.getDate()}</div>`;
+    header.appendChild(col);
+  }
+  for (let h=8; h<=19; h++) {
+    const row = document.createElement('div');
+    row.className = 'hour-row';
+    row.innerHTML = `<div class="hour-label">${h}:00</div>`;
+    for (let i=0; i<7; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'hour-cell';
+      if (mode==='pro' && isProClosed(i)) cell.classList.add('closed');
+      row.appendChild(cell);
+    }
+    body.appendChild(row);
+  }
+  requestAnimationFrame(() => {
+    const w = body.offsetWidth;
+    const colWidth = (w-50)/7;
+    weekDates.forEach((d, di) => {
+      events.filter(e => e.date===fmt(d) && e.mode===mode).forEach(e => {
+        const sm = (e.startH-8)*60 + e.startM;
+        const dm = (e.endH-e.startH)*60 + (e.endM-e.startM);
+        const evt = document.createElement('div');
+        evt.className = 'week-event chip-'+e.cat;
+        evt.style.top = `${sm*(44/60)}px`;
+        evt.style.height = `${Math.max(dm*(44/60)-2, 20)}px`;
+        evt.style.left = `${50 + di*colWidth + 1}px`;
+        evt.style.width = `${colWidth - 2}px`;
+        evt.innerHTML = `<div class="week-event-title">${e.title}</div><div class="week-event-time">${String(e.startH).padStart(2,'0')}:${String(e.startM).padStart(2,'0')}</div>`;
+        evt.onclick = () => openEventModal(e);
+        body.appendChild(evt);
+      });
+    });
+  });
+}
+
+function renderDay() {
+  const d = viewDate;
+  document.getElementById('dayDate').textContent = `${DAYS_FULL[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()].toLowerCase()}`;
+  document.getElementById('dayName').textContent = sameDay(d, today)?"AUJOURD'HUI":'';
+  const body = document.getElementById('dayBody');
+  body.innerHTML = '';
+  for (let h=8; h<=19; h++) {
+    const row = document.createElement('div');
+    row.className = 'day-hour';
+    row.innerHTML = `<div class="day-hour-label">${h}:00</div><div></div>`;
+    body.appendChild(row);
+  }
+  events.filter(e => e.date===fmt(d) && e.mode===mode).forEach(e => {
+    const sm = (e.startH-8)*60 + e.startM;
+    const dm = (e.endH-e.startH)*60 + (e.endM-e.startM);
+    const evt = document.createElement('div');
+    evt.className = 'day-event chip-'+e.cat;
+    evt.style.top = `${sm*(48/60)+8}px`;
+    evt.style.height = `${Math.max(dm*(48/60)-6, 30)}px`;
+    evt.innerHTML = `<div class="day-event-title">${e.title}</div><div class="day-event-time">${String(e.startH).padStart(2,'0')}:${String(e.startM).padStart(2,'0')} – ${String(e.endH).padStart(2,'0')}:${String(e.endM).padStart(2,'0')}</div>`;
+    evt.onclick = () => openEventModal(e);
+    body.appendChild(evt);
+  });
+}
+
+// ═══ EVENT MODAL ═══
+let currentEvent = null;
+function openEventModal(e) {
+  currentEvent = e;
+  document.getElementById('emTitle').textContent = e.title;
+  const dateStr = new Date(e.date+'T00:00:00').toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'});
+  const timeStr = `${String(e.startH).padStart(2,'0')}:${String(e.startM).padStart(2,'0')} – ${String(e.endH).padStart(2,'0')}:${String(e.endM).padStart(2,'0')}`;
+  document.getElementById('emBody').innerHTML = `
+    <div class="event-detail-row"><svg viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg><div><div class="event-detail-label">Date</div><div class="event-detail-value">${dateStr}</div></div></div>
+    <div class="event-detail-row"><svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2z"/></svg><div><div class="event-detail-label">Horaire</div><div class="event-detail-value">${timeStr}</div></div></div>
+    <div class="event-detail-row"><svg viewBox="0 0 24 24"><path d="M12 1 3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg><div><div class="event-detail-label">Sécurité</div><div class="event-detail-value" style="color:var(--g-green);">✓ Chiffré E2E</div></div></div>
+  `;
+  const actions = document.getElementById('emActions');
+  if (mode==='user' && e.title.includes('Dr. Martin')) {
+    actions.innerHTML = `<button class="btn-secondary" onclick="closeEventModal()">Fermer</button><button class="btn-danger" onclick="cancelRdv()">Annuler le RDV</button>`;
+  } else {
+    actions.innerHTML = `<button class="btn-secondary" onclick="closeEventModal()" style="flex:1;">Fermer</button>`;
+  }
+  document.getElementById('eventModal').classList.add('open');
+}
+function closeEventModal() { document.getElementById('eventModal').classList.remove('open'); }
+
+function cancelRdv() {
+  closeEventModal();
+  events = events.filter(e => !(e.title.includes('Dr. Martin') && e.mode==='user' && e.date==='2026-04-22'));
+  events = events.filter(e => !(e.mode==='pro' && e.isJean));
+  messages.pro = messages.pro.filter(m => m.with !== 'Jean Dupont');
+  messages.pro.unshift({
+    id: Date.now(), with:'Jean Dupont', avatar:'JD', color:'#1a73e8', unread:1, icon:'👤', isCancellation:true,
+    thread:[
+      {from:'me', text:'Bonjour M. Dupont, confirmation de votre RDV du 22 avril à 14h30.', time:'Lun. 09:30'},
+      {from:'them', text:"Bonjour Dr. Martin, un imprévu m'empêche d'honorer notre rendez-vous d'aujourd'hui 14h30. Pourriez-vous me proposer une nouvelle date ? Merci de votre compréhension.", time:'À l\'instant'}
+    ]
+  });
+  showToast('✅ Annulation envoyée');
+  updateBadges();
+  setTimeout(() => {
+    if (confirm("L'annulation a été envoyée.\nBasculer en Mode Professionnel pour voir la réaction ?")) {
+      switchMode('pro');
+      setTimeout(() => navigate('messages'), 400);
+    }
+  }, 800);
+}
+
+// ═══ PROFILE ═══
+function renderProfile() {
+  const c = document.getElementById('profileContent');
+  if (mode==='user') {
+    const profileId = currentProfile.user;
+    const profileData = profilesData.user[profileId];
+    // Jean has the full details, Marie has her own
+    if (profileId === 'jean') {
+      const p = userProfile;
+      c.innerHTML = `
+        <div class="profile-hero">
+          <div class="profile-avatar profile-avatar-user">JD</div>
+          <div class="profile-name">${p.firstName} ${p.lastName}</div>
+          <div class="profile-sub">${p.age} ans — ${p.city}</div>
+          <div style="margin-top:8px; display:inline-block; padding:4px 12px; background:#fff; border-radius:12px; font-size:11px; color:var(--g-blue); font-weight:500;">🔒 Profil chiffré E2E</div>
+        </div>
+        <div class="info-section"><div class="info-section-title">📝 Identité</div>
+          ${infoRow('Date de naissance', p.birth)}${infoRow('Genre', p.gender)}</div>
+        <div class="info-section"><div class="info-section-title">📧 Coordonnées</div>
+          ${infoRow('Email', p.email)}${infoRow('Mobile', p.phone)}${infoRow('Adresse', p.address+', '+p.addr2+', '+p.zip+' '+p.city)}</div>
+        <div class="info-section"><div class="info-section-title">🏥 Santé</div>
+          ${infoRow('Sécurité Sociale', p.ssn, true)}${infoRow('Mutuelle', p.mutual, true)}
+          ${infoRow('Groupe sanguin', p.bloodType)}${infoRow('Allergies', p.allergies)}
+          ${infoRow('À prévenir', p.emergency)}</div>
+        <div class="info-section"><div class="info-section-title">🛂 Identité légale</div>
+          ${infoRow('CNI', p.cni, true)}${infoRow('Passeport', p.passport, true)}</div>
+        <div class="info-section"><div class="info-section-title">💳 Bancaire</div>
+          ${infoRow('Banque', p.bank)}${infoRow('IBAN', p.iban, true)}</div>
+        <div class="info-section"><div class="info-section-title">💼 Profession</div>
+          ${infoRow('Métier', p.job)}${infoRow('Entreprise', p.company)}</div>
+        <div class="info-section"><div class="info-section-title">👨‍👩‍👧 Famille</div>
+          ${infoRow('Situation', p.family)}</div>
+        <div style="padding:20px; background:#e8f5e9; margin:16px; border-radius:12px; font-size:12px; color:#1b5e20; text-align:center;">
+          🔒 <b>Chiffrement E2E actif</b><br>Chaque pro ne voit que ce qu'il lui faut — ni plus, ni moins.
+        </div>`;
+    } else {
+      // Marie Dupont profile
+      c.innerHTML = `
+        <div class="profile-hero">
+          <div class="profile-avatar profile-avatar-user" style="background:linear-gradient(135deg, #ea4335, #8430ce);">MD</div>
+          <div class="profile-name">Marie Dupont</div>
+          <div class="profile-sub">38 ans — Paris</div>
+          <div style="margin-top:8px; display:inline-block; padding:4px 12px; background:#fff; border-radius:12px; font-size:11px; color:var(--g-blue); font-weight:500;">🔒 Profil chiffré E2E</div>
+        </div>
+        <div class="info-section"><div class="info-section-title">📝 Identité</div>
+          ${infoRow('Date de naissance', '22/07/1987')}${infoRow('Genre', 'Femme')}</div>
+        <div class="info-section"><div class="info-section-title">📧 Coordonnées</div>
+          ${infoRow('Email', 'marie.dupont@email.fr')}${infoRow('Mobile', '06 23 45 67 89')}${infoRow('Adresse', '15 avenue des Fleurs, Appt 3B, 75001 Paris')}</div>
+        <div class="info-section"><div class="info-section-title">🏥 Santé</div>
+          ${infoRow('Sécurité Sociale', '2 87 07 75 456 789 12', true)}${infoRow('Mutuelle', 'MGEN — 123 456 790', true)}
+          ${infoRow('Groupe sanguin', 'O+')}${infoRow('Allergies', 'Aucune')}
+          ${infoRow('À prévenir', 'Jean Dupont (époux) — 06 12 34 56 78')}</div>
+        <div class="info-section"><div class="info-section-title">🛂 Identité légale</div>
+          ${infoRow('CNI', 'FR 234 567 890', true)}${infoRow('Passeport', 'FR 876 543 210', true)}</div>
+        <div class="info-section"><div class="info-section-title">💳 Bancaire</div>
+          ${infoRow('Banque', 'BNP Paribas (compte joint)')}${infoRow('IBAN', 'FR76 **** **** **** **** 123', true)}</div>
+        <div class="info-section"><div class="info-section-title">💼 Profession</div>
+          ${infoRow('Métier', 'Responsable RH')}${infoRow('Entreprise', 'DesignCorp')}</div>
+        <div class="info-section"><div class="info-section-title">👨‍👩‍👧 Famille</div>
+          ${infoRow('Situation', 'Mariée — 2 enfants (Lucas 8 ans, Emma 5 ans)')}</div>
+        <div style="padding:20px; background:#e8f5e9; margin:16px; border-radius:12px; font-size:12px; color:#1b5e20; text-align:center;">
+          🔒 <b>Chiffrement E2E actif</b><br>Chaque pro ne voit que ce qu'il lui faut — ni plus, ni moins.
+        </div>`;
+    }
+  } else {
+    const profileId = currentProfile.pro;
+    if (profileId === 'martin') {
+      const p = proProfile;
+      c.innerHTML = `
+        <div class="profile-hero">
+          <div class="profile-avatar profile-avatar-pro">TM</div>
+          <div class="profile-name">${p.name}</div>
+          <div class="profile-sub">${p.job}</div>
+          <div style="margin-top:8px; display:inline-block; padding:4px 12px; background:#fff; border-radius:12px; font-size:11px; color:var(--g-green); font-weight:500;">💼 Compte Pro</div>
+        </div>
+        <div class="info-section"><div class="info-section-title">🏥 Cabinet</div>
+          ${infoRow('Nom', p.cabinet)}${infoRow('Adresse', p.address)}</div>
+        <div class="info-section"><div class="info-section-title">📧 Contact</div>
+          ${infoRow('Email', p.email)}${infoRow('Téléphone', p.phone)}</div>
+        <div class="info-section"><div class="info-section-title">📋 Identifiants pro</div>
+          ${infoRow('SIRET', p.siret, true)}${infoRow('RPPS', p.rpps, true)}</div>
+        <div class="info-section"><div class="info-section-title">⏰ Horaires</div>
+          ${infoRow('Ouvert', p.hours)}${infoRow('Fermé', p.closed)}</div>`;
+    } else {
+      // Me. Blanc profile
+      c.innerHTML = `
+        <div class="profile-hero">
+          <div class="profile-avatar profile-avatar-pro" style="background:linear-gradient(135deg, #8430ce, #1a73e8);">CB</div>
+          <div class="profile-name">Me. Claire Blanc</div>
+          <div class="profile-sub">Avocate — Droit des affaires</div>
+          <div style="margin-top:8px; display:inline-block; padding:4px 12px; background:#fff; border-radius:12px; font-size:11px; color:var(--g-green); font-weight:500;">💼 Compte Pro</div>
+        </div>
+        <div class="info-section"><div class="info-section-title">⚖️ Cabinet</div>
+          ${infoRow('Nom', 'Cabinet Blanc & Associés')}${infoRow('Adresse', '45 avenue Victor Hugo, 75016 Paris')}
+          ${infoRow('Spécialités', 'Droit commercial, droit des sociétés, successions')}</div>
+        <div class="info-section"><div class="info-section-title">📧 Contact</div>
+          ${infoRow('Email', 'cabinet@blanc-avocats.fr')}${infoRow('Téléphone', '01 45 67 89 10')}
+          ${infoRow('Site web', 'www.blanc-avocats.fr')}</div>
+        <div class="info-section"><div class="info-section-title">📋 Identifiants pro</div>
+          ${infoRow('SIRET', '987 654 321 00015', true)}
+          ${infoRow('N° Barreau', 'Paris — B 45678', true)}
+          ${infoRow('Assurance RCP', 'AXA Pro — à jour')}</div>
+        <div class="info-section"><div class="info-section-title">⏰ Horaires</div>
+          ${infoRow('Ouvert', 'Lundi au Vendredi — 9h00 à 19h00')}
+          ${infoRow('Fermé', 'Samedi, Dimanche')}
+          ${infoRow('Sur RDV uniquement', 'Consultations en cabinet ou visio')}</div>
+        <div class="info-section"><div class="info-section-title">💳 Coordonnées bancaires</div>
+          ${infoRow('IBAN cabinet', 'FR76 **** **** **** **** 789', true)}</div>`;
+    }
+  }
+}
+
+function infoRow(label, value, sensitive=false) {
+  return `<div class="info-row"><div class="info-content"><div class="info-label">${label}</div><div class="info-value">${value}</div>${sensitive?'<div class="info-lock">🔒 Donnée chiffrée</div>':''}</div></div>`;
+}
+
+// ═══ PROS/CLIENTS ═══
+function renderPros() {
+  const isUser = mode==='user';
+  document.getElementById('prosTitle').textContent = isUser?'Mes Professionnels':'Mes Clients';
+  document.getElementById('prosSubtitle').textContent = isUser?'Vos professionnels de confiance':'🔒 Confidentialité garantie';
+  document.getElementById('searchBar').classList.toggle('hidden', !isUser);
+  const list = document.getElementById('prosList');
+  if (isUser) {
+    list.innerHTML = userPros.map(p => `
+      <div class="card" onclick="showToast('Fiche ${p.name}')">
+        <div class="card-avatar" style="background:${p.color};">${p.icon}</div>
+        <div class="card-body">
+          <div class="card-title">${p.name}</div>
+          <div class="card-sub">${p.job} • ${p.city}</div>
+        </div>
+      </div>`).join('');
+  } else {
+    list.innerHTML = proClients.map(c => `
+      <div class="card" onclick="showClientDetail(${c.id})">
+        <div class="card-avatar" style="background:linear-gradient(135deg, var(--g-blue), var(--g-purple));">${c.name.split(' ').map(n=>n[0]).slice(0,2).join('')}</div>
+        <div class="card-body">
+          <div class="card-title">${c.name}</div>
+          <div class="card-sub">${c.age} ans • ${c.rdvs} RDV</div>
+        </div>
+      </div>`).join('');
+  }
+}
+
+function showClientDetail(id) {
+  const c = proClients.find(x => x.id===id);
+  if (!c) return;
+  document.getElementById('clientModalTitle').textContent = c.name;
+  document.getElementById('clientModalBody').innerHTML = `
+    <div class="visible-banner">✅ VISIBLE POUR VOUS — données nécessaires aux soins dentaires</div>
+    <div style="padding:16px;">
+      ${infoRow('Âge', c.age+' ans')}
+      ${infoRow('N° Sécurité Sociale', c.ssn, true)}
+      ${infoRow('Mutuelle', c.mutual)}
+      ${infoRow('Allergies', c.allergies)}
+      ${infoRow('Groupe sanguin', c.blood)}
+      ${infoRow('Téléphone', c.phone)}
+      ${infoRow('RDV honorés', c.rdvs+'/'+(c.rdvs+c.noshow))}
+    </div>
+    <div class="invisible-banner">❌ INVISIBLE POUR VOUS — données hors de votre champ professionnel</div>
+    <div style="padding:16px; color:var(--text-sec); font-size:13px;">
+      • Passeport / CNI<br>
+      • Coordonnées bancaires / IBAN<br>
+      • Profession et entreprise<br>
+      • Situation familiale<br>
+      • Autres professionnels consultés<br>
+      • Adresse personnelle détaillée
+    </div>
+    <div style="padding:16px; background:#e8f5e9; margin:16px; border-radius:12px; font-size:12px; color:#1b5e20; text-align:center;">
+      🔒 <b>Confidentialité TimeCool</b><br>Chaque pro voit uniquement ce dont il a besoin.
+    </div>`;
+  document.getElementById('clientModal').classList.add('open');
+}
+function closeClientModal() { document.getElementById('clientModal').classList.remove('open'); }
+
+// ═══ SEARCH ═══
+function doSearch() {
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  if (!q) { renderPros(); return; }
+  // Simulate search results
+  const results = [
+    {name:'Dr. Caroline Vidal', job:'Dermatologue', addr:'8 rue Saint-Honoré, Paris 1er', dist:'1,2 km', phone:'01 42 33 44 55', email:'cabinet@dr-vidal.fr', partner:true, slot:'Mardi 21 avril 14h30'},
+    {name:'Dr. Michel Bernard', job:'Dermatologue', addr:'15 boulevard Haussmann, Paris 9e', dist:'2,8 km', phone:'01 45 66 77 88', email:'contact@dr-bernard.fr', partner:false, doctolib:true},
+    {name:'Dr. Sylvie Lambert', job:'Dermatologue', addr:'22 avenue de l\'Opéra, Paris 1er', dist:'3,1 km', phone:'01 47 88 99 00', email:'dr.lambert@cabinet.fr', partner:false}
+  ];
+  const list = document.getElementById('prosList');
+  list.innerHTML = `
+    <div style="padding:12px; background:#e8f0fe; border-radius:10px; margin-bottom:12px; font-size:12px; color:var(--g-blue);">
+      <b>${results.length} dermatologues trouvés</b> à proximité de votre adresse
+    </div>
+    ${results.map(r => `
+      <div class="search-result ${r.partner?'partner':''}">
+        ${r.partner?'<div class="partner-badge">⭐ PARTENAIRE TIMECOOL</div>':''}
+        <div class="search-name">${r.name}</div>
+        <div class="search-job">${r.job}</div>
+        <div class="search-addr">📍 ${r.addr} (${r.dist})</div>
+        <div class="search-contact">📞 ${r.phone} • 📧 ${r.email}</div>
+        ${r.partner?`<div style="margin-top:8px; font-size:12px; color:var(--g-green); font-weight:500;">⚡ Prochain RDV : ${r.slot}</div>`:''}
+        <div class="search-actions">
+          ${r.partner
+            ? `<button class="search-action search-action-primary" onclick="showToast('RDV en 1 clic — démo')">📅 Prendre RDV en 1 clic</button>`
+            : `<button class="search-action" onclick="showToast('Appel ${r.phone}')">📞 Appeler</button>
+               <button class="search-action" onclick="showToast('Email ${r.email}')">📧 Email</button>
+               ${r.doctolib?`<button class="search-action search-action-ext" onclick="showToast('Lien Doctolib')">🔗 Doctolib</button>`:''}`
+          }
+        </div>
+        ${!r.partner?`<div class="search-invite" onclick="showToast('Invitation envoyée !')">💌 Inviter ce pro à rejoindre TimeCool</div>`:''}
+      </div>
+    `).join('')}
+    <div style="padding:12px; margin-top:12px; font-size:11px; color:var(--text-sec); text-align:center; font-style:italic;">
+      TimeCool s'intègre à votre écosystème — nous n'imposons rien, nous facilitons tout.
+    </div>`;
+}
+
+// ═══ MESSAGES ═══
+function renderMessages() {
+  const msgs = messages[mode];
+  const list = document.getElementById('messagesList');
+  if (!msgs.length) { list.innerHTML = '<div style="padding:40px; text-align:center; color:var(--text-sec);">Aucun message</div>'; return; }
+  list.innerHTML = msgs.map(m => `
+    <div class="msg-preview ${m.unread>0?'unread':''}" onclick="openConversation(${m.id})">
+      <div class="msg-avatar" style="background:${m.color};">${m.icon||m.avatar}</div>
+      <div class="msg-body">
+        <div class="msg-name">${m.with}<span class="msg-time">${m.thread[m.thread.length-1].time}</span></div>
+        <div class="msg-text">${m.thread[m.thread.length-1].text.substring(0,60)}${m.thread[m.thread.length-1].text.length>60?'...':''}</div>
+      </div>
+      ${m.unread>0?`<div class="card-badge" style="margin-left:8px;">${m.unread}</div>`:''}
+    </div>`).join('');
+}
+
+function openConversation(id) {
+  const msg = messages[mode].find(m => m.id===id);
+  if (!msg) return;
+  msg.unread = 0;
+  updateBadges();
+  document.getElementById('convAvatar').style.background = msg.color;
+  document.getElementById('convAvatar').textContent = msg.icon||msg.avatar;
+  document.getElementById('convName').textContent = msg.with;
+  const body = document.getElementById('convBody');
+  body.innerHTML = msg.thread.map(t => `
+    <div class="conv-msg ${t.from==='me'?'sent':'received'}">${t.text.replace(/\n/g,'<br>')}<div class="conv-time">${t.time}</div></div>
+  `).join('');
+  if (mode==='pro' && msg.isCancellation && !msg.accepted) {
+    body.innerHTML += `
+      <div style="margin-top:16px; display:flex; flex-direction:column; gap:8px;">
+        <button style="padding:14px; font-size:14px; border:none; cursor:pointer; border-radius:18px; color:white; font-weight:500; background:var(--g-green);" onclick="acceptReprogram(${id})">✅ Accepter et reprogrammer</button>
+        <button style="background:var(--text-sec); padding:14px; font-size:14px; border:none; cursor:pointer; border-radius:18px; color:white; font-weight:500;" onclick="showToast('Refus')">❌ Refuser</button>
+      </div>`;
+  }
+  if (mode==='user' && msg.hasSlots && !msg.slotChosen) {
+    body.innerHTML += `
+      <div class="conv-timer">⏱️ <span id="timerText">Temps restant : 4:58</span></div>
+      <div class="slot-list">
+        ${msg.slots.map((s,i) => `
+          <button class="slot-btn" onclick="chooseSlot(${id},${i})">
+            <svg viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>
+            <div><div style="font-weight:600;">${s.label}</div><div style="font-size:11px; opacity:0.8;">Dr. Martin</div></div>
+          </button>`).join('')}
+      </div>`;
+    startCountdown(id);
+  }
+  body.scrollTop = body.scrollHeight;
+  currentPage = 'conv';
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-conv').classList.add('active');
+}
+
+function acceptReprogram(convId) {
+  const body = document.getElementById('convBody');
+  body.innerHTML += `<div class="ai-search" id="aiSearch"><div style="font-size:24px;">🧠</div><div class="ai-dots"><span></span><span></span><span></span><span></span></div><div class="ai-text">L'IA TimeCool analyse les agendas…</div><div style="font-size:11px; color:var(--text-sec); margin-top:8px;">Consultation confidentielle de l'agenda<br>de M. Dupont en cours…</div></div>`;
+  body.scrollTop = body.scrollHeight;
+  setTimeout(() => {
+    document.getElementById('aiSearch').remove();
+    const slots = [
+      {label:'Mardi 28 avril — 14h00', date:'2026-04-28', h:14, m:0},
+      {label:'Mardi 5 mai — 14h30', date:'2026-05-05', h:14, m:30},
+      {label:'Mardi 12 mai — 14h00', date:'2026-05-12', h:14, m:0}
+    ];
+    body.innerHTML += `
+      <div class="conv-msg sent" style="background:#fff4e0; color:#b26a00;">
+        <div style="font-weight:600; margin-bottom:6px;">💡 3 créneaux compatibles trouvés</div>
+        <div style="font-size:11px;">L'IA a respecté les préférences de M. Dupont (santé mardi 14-15h) ET vos disponibilités.</div>
+        <div class="conv-time">À l'instant</div>
+      </div>
+      <div style="margin-top:8px;">
+        <button style="width:100%; padding:14px; background:var(--g-blue); color:white; border:none; border-radius:18px; font-weight:500; cursor:pointer; font-size:14px;" onclick='sendSlots(${convId}, ${JSON.stringify(slots)})'>📤 Envoyer les 3 créneaux à M. Dupont</button>
+      </div>`;
+    body.scrollTop = body.scrollHeight;
+  }, 2500);
+}
+
+function sendSlots(convId, slots) {
+  const msg = messages.pro.find(m => m.id===convId);
+  msg.accepted = true;
+  const text = `Bonjour M. Dupont, veuillez trouver ci-joint 3 propositions de nouveau rendez-vous à valider dans les 5 minutes afin de garantir la disponibilité des créneaux.\n\n📅 ${slots[0].label}\n📅 ${slots[1].label}\n📅 ${slots[2].label}\n\nCordialement, Dr. Martin.`;
+  msg.thread.push({from:'me', text, time:"À l'instant"});
+  const userConv = messages.user.find(m => m.with==='Dr. Thomas Martin');
+  if (userConv) {
+    userConv.unread = 1;
+    userConv.hasSlots = true;
+    userConv.slots = slots;
+    userConv.thread.push({from:'them', text, time:"À l'instant"});
+  }
+  showToast('✅ Propositions envoyées');
+  updateBadges();
+  setTimeout(() => {
+    if (confirm('Propositions envoyées !\nBasculer en Mode Particulier pour voir la réaction ?')) {
+      switchMode('user');
+      setTimeout(() => { navigate('messages'); setTimeout(() => openConversation(userConv.id), 300); }, 400);
+    }
+  }, 800);
+}
+
+let countdownInterval = null;
+function startCountdown(convId) {
+  clearInterval(countdownInterval);
+  let sec = 298;
+  countdownInterval = setInterval(() => {
+    sec--;
+    const el = document.getElementById('timerText');
+    if (!el) { clearInterval(countdownInterval); return; }
+    const mn = Math.floor(sec/60), sc = sec%60;
+    el.textContent = `Temps restant : ${mn}:${String(sc).padStart(2,'0')}`;
+    if (sec<=0) { clearInterval(countdownInterval); el.textContent = '⏰ Expiré'; }
+  }, 1000);
+}
+
+function chooseSlot(convId, idx) {
+  clearInterval(countdownInterval);
+  const msg = messages.user.find(m => m.id===convId);
+  const slot = msg.slots[idx];
+  msg.slotChosen = slot;
+  events.push({date:slot.date, startH:slot.h, startM:slot.m, endH:slot.h+1, endM:slot.m, title:'🦷 Dr. Martin', cat:'red', mode:'user', id:'u_new'});
+  events.push({date:slot.date, startH:slot.h, startM:slot.m, endH:slot.h+1, endM:slot.m, title:'Jean Dupont', cat:'red', mode:'pro', id:'p_new', isJean:true});
+  msg.thread.push({from:'me', text:`J'ai choisi le créneau du ${slot.label}. Merci !`, time:"À l'instant"});
+  const proConv = messages.pro.find(m => m.with==='Jean Dupont');
+  if (proConv) {
+    proConv.unread = 1;
+    proConv.thread.push({from:'them', text:`J'ai choisi le créneau du ${slot.label}. Merci !`, time:"À l'instant"});
+  }
+  showToast('✅ Nouveau RDV : '+slot.label);
+  updateBadges();
+  setTimeout(() => {
+    if (confirm('RDV confirmé !\nBasculer en Mode Pro pour voir l\'agenda mis à jour ?')) {
+      switchMode('pro');
+      setTimeout(() => { navigate('calendar'); viewDate = new Date(slot.date+'T00:00:00'); render(); }, 400);
+    }
+  }, 800);
+}
+
+// ═══ DASHBOARD ═══
+function renderDashboard() {
+  const c = document.getElementById('dashContent');
+  const monthLabel = `${MONTHS[dashMonth.getMonth()]} ${dashMonth.getFullYear()}`;
+  if (mode==='user') {
+    c.innerHTML = `
+      <div class="dash-hero">
+        <div class="dash-month-nav">
+          <button onclick="prevDashMonth()"><svg viewBox="0 0 24 24"><path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg></button>
+          <div class="dash-month-title">${monthLabel}</div>
+          <button onclick="nextDashMonth()"><svg viewBox="0 0 24 24"><path d="M10 6 8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg></button>
+        </div>
+        <div class="big-stat">
+          <div class="big-stat-value">6h 12</div>
+          <div class="big-stat-label">Temps économisé ce mois</div>
+          <div class="big-stat-sub stat-up">↓ -87% d'attente en salle</div>
+        </div>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-card-label">RDV honorés</div><div class="stat-card-value">15</div><div class="stat-card-sub">sur 18 prévus</div></div>
+        <div class="stat-card"><div class="stat-card-label">Annulés par moi</div><div class="stat-card-value" style="color:var(--g-yellow);">2</div><div class="stat-card-sub">reprogrammés instantanément</div></div>
+        <div class="stat-card"><div class="stat-card-label">Retards anticipés</div><div class="stat-card-value" style="color:var(--g-blue);">4</div><div class="stat-card-sub">prévenus à l'avance ✨</div></div>
+        <div class="stat-card"><div class="stat-card-label">Temps d'attente</div><div class="stat-card-value" style="color:var(--g-green);">42 min</div><div class="stat-card-sub stat-down">vs 3h avant TimeCool</div></div>
+      </div>
+
+      <div class="breakdown">
+        <div class="breakdown-title">🔒 Ma relation avec mes professionnels <span style="font-weight:400; color:var(--text-sec); font-size:11px;">(données privées)</span></div>
+        ${userRelations.map(r => `
+          <div style="padding:12px 16px; border-top:1px solid var(--border);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <div>
+                <div style="font-size:14px; font-weight:500;">${r.name}</div>
+                <div style="font-size:11px; color:var(--text-sec);">${r.job} • ${r.rdvs} RDV</div>
+              </div>
+              <div class="relation-tag tag-${r.tag}">${r.label}</div>
+            </div>
+            <div class="relation-stats">
+              <div class="relation-stat"><div class="relation-stat-val">${r.punctuality}%</div><div class="relation-stat-lbl">Ponctualité</div></div>
+              <div class="relation-stat"><div class="relation-stat-val">${r.avgDelay} min</div><div class="relation-stat-lbl">Retard moyen</div></div>
+              <div class="relation-stat"><div class="relation-stat-val">${r.rdvs}</div><div class="relation-stat-lbl">RDV honorés</div></div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+
+      <div style="padding:14px 16px; margin:16px; background:#e8f5e9; border-radius:12px; font-size:12px; color:#1b5e20; text-align:center;">
+        🔒 <b>Ces données sont strictement personnelles</b><br>
+        Elles ne sont jamais partagées, publiées, ni exploitées.<br>
+        TimeCool ne fait aucune note publique.
+      </div>`;
+  } else {
+    c.innerHTML = `
+      <div class="dash-hero">
+        <div class="dash-month-nav">
+          <button onclick="prevDashMonth()"><svg viewBox="0 0 24 24"><path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg></button>
+          <div class="dash-month-title">${monthLabel}</div>
+          <button onclick="nextDashMonth()"><svg viewBox="0 0 24 24"><path d="M10 6 8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg></button>
+        </div>
+        <div class="big-stat">
+          <div class="big-stat-value">+30%</div>
+          <div class="big-stat-label">Chiffre d'affaires ce mois</div>
+          <div class="big-stat-sub stat-up">11 050 € vs 8 500 € avant</div>
+        </div>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-card-label">Remplissage agenda</div><div class="stat-card-value" style="color:var(--g-green);">95%</div><div class="stat-card-sub stat-up">vs 70% avant</div></div>
+        <div class="stat-card"><div class="stat-card-label">Taux no-show</div><div class="stat-card-value" style="color:var(--g-green);">0,7%</div><div class="stat-card-sub stat-down">vs 30% avant</div></div>
+        <div class="stat-card"><div class="stat-card-label">Nouveaux patients</div><div class="stat-card-value" style="color:var(--g-blue);">7</div><div class="stat-card-sub">via TimeCool</div></div>
+        <div class="stat-card"><div class="stat-card-label">Temps gagné</div><div class="stat-card-value" style="color:var(--g-purple);">12h</div><div class="stat-card-sub">fini les appels</div></div>
+      </div>
+
+      <div class="breakdown">
+        <div class="breakdown-title">📊 Décomposition du gain +30% CA</div>
+        <div class="breakdown-row">
+          <div class="breakdown-label">No-shows évités</div>
+          <div class="breakdown-bar"><div class="breakdown-bar-fill" style="width:33%; background:var(--g-blue);"></div></div>
+          <div class="breakdown-value stat-up">+10%</div>
+        </div>
+        <div class="breakdown-row">
+          <div class="breakdown-label">Nouveaux patients</div>
+          <div class="breakdown-bar"><div class="breakdown-bar-fill" style="width:33%; background:var(--g-green);"></div></div>
+          <div class="breakdown-value stat-up">+10%</div>
+        </div>
+        <div class="breakdown-row">
+          <div class="breakdown-label">Temps réinvesti</div>
+          <div class="breakdown-bar"><div class="breakdown-bar-fill" style="width:33%; background:var(--g-purple);"></div></div>
+          <div class="breakdown-value stat-up">+10%</div>
+        </div>
+      </div>
+
+      <div class="breakdown">
+        <div class="breakdown-title">🔒 Historique avec mes patients <span style="font-weight:400; color:var(--text-sec); font-size:11px;">(données cabinet)</span></div>
+        ${proClients.slice(0,5).map(c => {
+          const punct = Math.round((c.punctual/c.rdvs)*100);
+          const tag = punct>=95?'excellent':punct>=80?'good':punct>=60?'fair':'issue';
+          const label = punct>=95?'Patient modèle':punct>=80?'Bon patient':punct>=60?'Correct':'À surveiller';
+          return `
+            <div style="padding:12px 16px; border-top:1px solid var(--border);">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <div>
+                  <div style="font-size:14px; font-weight:500;">${c.name}</div>
+                  <div style="font-size:11px; color:var(--text-sec);">${c.age} ans • ${c.rdvs} RDV</div>
+                </div>
+                <div class="relation-tag tag-${tag}">${label}</div>
+              </div>
+              <div class="relation-stats">
+                <div class="relation-stat"><div class="relation-stat-val">${punct}%</div><div class="relation-stat-lbl">Présence</div></div>
+                <div class="relation-stat"><div class="relation-stat-val">${c.punctual}</div><div class="relation-stat-lbl">Honorés</div></div>
+                <div class="relation-stat"><div class="relation-stat-val">${c.noshow}</div><div class="relation-stat-lbl">No-show</div></div>
+              </div>
+            </div>`;
+        }).join('')}
+      </div>
+
+      <div style="padding:14px 16px; margin:16px; background:#fff4e0; border-radius:12px; font-size:12px; color:#8a6500; text-align:center;">
+        💎 <b>Devenez Partenaire Premium</b> pour accéder aux statistiques illimitées<br>
+        <span style="cursor:pointer; text-decoration:underline;" onclick="navigate('premium')">Voir l'offre fondateurs →</span>
+      </div>`;
+  }
+}
+
+function prevDashMonth() { dashMonth.setMonth(dashMonth.getMonth()-1); renderDashboard(); }
+function nextDashMonth() { dashMonth.setMonth(dashMonth.getMonth()+1); renderDashboard(); }
+
+// ═══ PREMIUM ═══
+function renderPremium() {
+  document.getElementById('premiumContent').innerHTML = `
+    <div class="premium-hero">
+      <div class="premium-title">💎 Devenez Partenaire TimeCool</div>
+      <div class="premium-sub">Gagnez plus, travaillez mieux, fidélisez plus</div>
+    </div>
+
+    <div class="premium-features">
+      <div class="premium-feat"><span class="premium-feat-icon">✅</span><div>Retards et annulations gérés en 1 clic</div></div>
+      <div class="premium-feat"><span class="premium-feat-icon">✅</span><div>Fini les 12h/semaine au téléphone</div></div>
+      <div class="premium-feat"><span class="premium-feat-icon">✅</span><div><b>+30% de chiffre d'affaires estimé</b></div></div>
+      <div class="premium-feat"><span class="premium-feat-icon">✅</span><div>Nouveaux patients via l'annuaire TimeCool</div></div>
+      <div class="premium-feat"><span class="premium-feat-icon">✅</span><div>Agenda IA qui s'optimise automatiquement</div></div>
+      <div class="premium-feat"><span class="premium-feat-icon">✅</span><div>Dashboard statistiques complet</div></div>
+      <div class="premium-feat"><span class="premium-feat-icon">✅</span><div>Salles d'attente apaisées — patients informés</div></div>
+    </div>
+
+    <div class="premium-price">
+      <div style="font-size:11px; text-transform:uppercase; letter-spacing:1px; opacity:0.9;">Offre Fondateurs</div>
+      <div class="premium-price-big">3 mois gratuits</div>
+      <div class="premium-price-sub">puis 100 €/mois — sans engagement</div>
+    </div>
+
+    <div class="premium-fomo">
+      ⏳ <b>Les 1 000 premiers professionnels</b><br>
+      bénéficieront d'une visibilité prioritaire à vie
+    </div>
+
+    <div style="text-align:center; margin-top:20px; font-size:12px; color:var(--text-sec);">
+      Les premiers arrivés seront les premiers servis<br>
+      Ne laissez pas vos concurrents prendre votre place.
+    </div>
+
+    <button style="width:100%; margin-top:16px; padding:16px; background:linear-gradient(135deg, var(--g-blue), var(--g-green)); color:white; border:none; border-radius:14px; font-size:15px; font-weight:600; cursor:pointer;" onclick="showToast('🚀 Bienvenue dans TimeCool Premium !')">🚀 Devenir partenaire TimeCool</button>
+  `;
+}
+
+// ═══ UTILITIES ═══
+function updateBadges() {
+  const unread = messages[mode].reduce((s,m) => s+m.unread, 0);
+  const hb = document.getElementById('headerBadge');
+  const mb = document.getElementById('menuBadge');
+  if (hb) { hb.style.display = unread>0?'flex':'none'; hb.textContent = unread; }
+  if (mb) { mb.style.display = unread>0?'flex':'none'; mb.textContent = unread; }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ═══ PROFILES SYSTEM (2 particuliers + 2 pros) ═══
+let currentProfile = { user:'jean', pro:'martin' };
+
+const profilesData = {
+  user: {
+    jean: {
+      name:'Jean Dupont', initials:'JD', age:40, phone:'06 12 34 56 78',
+      email:'jean.dupont@email.fr', address:'15 avenue des Fleurs, Paris 1er'
+    },
+    marie: {
+      name:'Marie Dupont', initials:'MD', age:38, phone:'06 23 45 67 89',
+      email:'marie.dupont@email.fr', address:'15 avenue des Fleurs, Paris 1er'
+    }
+  },
+  pro: {
+    martin: {
+      name:'Dr. Thomas Martin', initials:'TM', job:'Dentiste',
+      cabinet:'Cabinet Dentaire Martin', phone:'01 42 33 44 55'
+    },
+    blanc: {
+      name:'Me. Claire Blanc', initials:'CB', job:'Avocate',
+      cabinet:'Cabinet Blanc & Associés', phone:'01 45 67 89 10'
+    }
+  }
+};
+
+function switchProfile(profileId) {
+  if (mode === 'user') {
+    currentProfile.user = profileId;
+    const p = profilesData.user[profileId];
+    const avatar = document.getElementById('headerAvatar');
+    avatar.textContent = p.initials;
+    document.getElementById('menuSubtitle').textContent = p.name + ' — Particulier';
+  } else {
+    currentProfile.pro = profileId;
+    const p = profilesData.pro[profileId];
+    const avatar = document.getElementById('headerAvatar');
+    avatar.textContent = p.initials;
+    document.getElementById('menuSubtitle').textContent = p.name + ' — Professionnel';
+  }
+  updateProfileSelector();
+  showToast('Profil : ' + (mode==='user'?profilesData.user[profileId].name:profilesData.pro[profileId].name));
+  if (currentPage==='calendar') render();
+  else if (currentPage==='profile') renderProfile();
+}
+
+function updateProfileSelector() {
+  const colUser = document.getElementById('profileColUser');
+  const colPro = document.getElementById('profileColPro');
+  if (mode === 'user') {
+    colUser.style.display = 'flex';
+    colPro.style.display = 'none';
+    colUser.innerHTML = `
+      <button class="profile-tab ${currentProfile.user==='jean'?'active':''}" data-profile="jean" onclick="switchProfile('jean')">Jean Dupont</button>
+      <button class="profile-tab ${currentProfile.user==='marie'?'active':''}" data-profile="marie" onclick="switchProfile('marie')">Marie Dupont</button>
+    `;
+  } else {
+    colUser.style.display = 'none';
+    colPro.style.display = 'flex';
+    colPro.innerHTML = `
+      <button class="profile-tab ${currentProfile.pro==='martin'?'active':''}" data-profile="martin" onclick="switchProfile('martin')">Dr. Martin</button>
+      <button class="profile-tab ${currentProfile.pro==='blanc'?'active':''}" data-profile="blanc" onclick="switchProfile('blanc')">Me. Blanc</button>
+    `;
+  }
+}
+
+// ═══ CREATE EVENT MODAL ═══
+function openCreateModal() {
+  document.getElementById('newEvtTitle').value = '';
+  document.getElementById('newEvtDesc').value = '';
+  document.getElementById('createModal').classList.add('open');
+}
+function closeCreateModal() { document.getElementById('createModal').classList.remove('open'); }
+
+function saveNewEvent() {
+  const title = document.getElementById('newEvtTitle').value.trim();
+  const type = document.getElementById('newEvtType').value;
+  const date = document.getElementById('newEvtDate').value;
+  const start = document.getElementById('newEvtStart').value;
+  const end = document.getElementById('newEvtEnd').value;
+  if (!title) { showToast('⚠️ Titre requis'); return; }
+  if (!date || !start || !end) { showToast('⚠️ Date/heures requises'); return; }
+  const [sh, sm] = start.split(':').map(Number);
+  const [eh, em] = end.split(':').map(Number);
+  events.push({
+    date, startH:sh, startM:sm, endH:eh, endM:em,
+    title, cat:type, mode, id:'new_'+Date.now()
+  });
+  closeCreateModal();
+  showToast('✅ Événement créé');
+  if (currentPage==='calendar') render();
+}
+
+// ═══ ASSISTANT TIMECOOL ═══
+let assistantStep = 0;
+const assistantQuestions = [
+  {
+    q:"Bonjour ! Je vais vous aider à configurer votre agenda en quelques minutes. C'est parti ?",
+    opts:[{label:"🚀 C'est parti !", val:'go'}]
+  },
+  {
+    q:"Avez-vous des enfants à l'école ?",
+    opts:[{label:"Oui", val:'yes'}, {label:"Non", val:'no'}],
+    key:'children'
+  },
+  {
+    q:"À quelle heure les récupérez-vous ?",
+    opts:[{label:"15h–16h", val:'15-16'}, {label:"16h–17h", val:'16-17'}, {label:"17h–18h", val:'17-18'}],
+    key:'schoolTime',
+    showIf: a => a.children === 'yes'
+  },
+  {
+    q:"Pour vos RDV santé (médecin, dentiste…), quels jours préférez-vous ?",
+    opts:[{label:"Mardi uniquement", val:'tue'}, {label:"Jeudi uniquement", val:'thu'}, {label:"Mardi & Jeudi", val:'tue-thu'}, {label:"Tous les jours", val:'all'}],
+    key:'healthDays'
+  },
+  {
+    q:"À quelle heure pour vos RDV santé ?",
+    opts:[{label:"Matin (8-12h)", val:'morning'}, {label:"Après-midi (14-17h)", val:'afternoon'}, {label:"Soirée (17-20h)", val:'evening'}],
+    key:'healthTime'
+  },
+  {
+    q:"Avez-vous un comptable ou expert-comptable ?",
+    opts:[{label:"Oui", val:'yes'}, {label:"Non", val:'no'}],
+    key:'accountant'
+  },
+  {
+    q:"Quel jour préférez-vous voir votre comptable ?",
+    opts:[{label:"Lundi", val:'mon'}, {label:"Mercredi", val:'wed'}, {label:"Vendredi", val:'fri'}],
+    key:'accountantDay',
+    showIf: a => a.accountant === 'yes'
+  },
+  {
+    q:"Faites-vous du sport régulièrement ?",
+    opts:[{label:"Oui", val:'yes'}, {label:"Non", val:'no'}],
+    key:'sport'
+  },
+  {
+    q:"Combien de séances par semaine ?",
+    opts:[{label:"1 séance", val:'1'}, {label:"2 séances", val:'2'}, {label:"3+ séances", val:'3'}],
+    key:'sportFreq',
+    showIf: a => a.sport === 'yes'
+  },
+  {
+    q:"Préférez-vous les RDV professionnels le matin ou l'après-midi ?",
+    opts:[{label:"Matin", val:'morning'}, {label:"Après-midi", val:'afternoon'}, {label:"Flexibles", val:'flex'}],
+    key:'proTime'
+  },
+  {
+    q:"Souhaitez-vous bloquer les week-ends pour la famille ?",
+    opts:[{label:"Oui, totalement", val:'full'}, {label:"Juste le dimanche", val:'sun'}, {label:"Non, flexibles", val:'no'}],
+    key:'weekend'
+  }
+];
+let assistantAnswers = {};
+
+function startAssistant() {
+  assistantStep = 0;
+  assistantAnswers = {};
+  document.getElementById('assistantBody').innerHTML = '';
+  navigate('assistant');
+  showAssistantQuestion();
+}
+
+function showAssistantQuestion() {
+  while (assistantStep < assistantQuestions.length) {
+    const q = assistantQuestions[assistantStep];
+    if (q.showIf && !q.showIf(assistantAnswers)) {
+      assistantStep++;
+      continue;
+    }
+    break;
+  }
+  if (assistantStep >= assistantQuestions.length) {
+    finishAssistant();
+    return;
+  }
+  const q = assistantQuestions[assistantStep];
+  const body = document.getElementById('assistantBody');
+  const msg = document.createElement('div');
+  msg.innerHTML = `
+    <div class="conv-msg received" style="max-width:90%;">${q.q}</div>
+    <div style="display:flex; flex-wrap:wrap; gap:8px; margin:10px 0 18px;">
+      ${q.opts.map(o => `<button style="padding:10px 16px; border:2px solid var(--g-blue); background:#fff; color:var(--g-blue); border-radius:20px; font-size:13px; font-weight:500; cursor:pointer;" onclick="answerAssistant('${q.key||'start'}','${o.val}','${o.label.replace(/'/g,"\\'")}')">${o.label}</button>`).join('')}
+    </div>`;
+  body.appendChild(msg);
+  body.scrollTop = body.scrollHeight;
+}
+
+function answerAssistant(key, val, label) {
+  if (key !== 'start') assistantAnswers[key] = val;
+  const body = document.getElementById('assistantBody');
+  const reply = document.createElement('div');
+  reply.innerHTML = `<div class="conv-msg sent">${label}</div>`;
+  body.appendChild(reply);
+  assistantStep++;
+  setTimeout(showAssistantQuestion, 400);
+}
+
+function finishAssistant() {
+  const body = document.getElementById('assistantBody');
+  // Generate summary of preferences
+  const a = assistantAnswers;
+  let prefs = [];
+  if (a.children === 'yes') prefs.push(`🏫 Créneau école ${a.schoolTime||'16h-17h'} bloqué Lun-Ven`);
+  if (a.healthDays) {
+    const days = {tue:'Mardi',thu:'Jeudi','tue-thu':'Mardi & Jeudi',all:'tous les jours'}[a.healthDays];
+    const time = {morning:'8h-12h',afternoon:'14h-17h',evening:'17h-20h'}[a.healthTime||'afternoon'];
+    prefs.push(`🏥 RDV santé : ${days} ${time}`);
+  }
+  if (a.accountant === 'yes') {
+    const d = {mon:'Lundi',wed:'Mercredi',fri:'Vendredi'}[a.accountantDay||'wed'];
+    prefs.push(`💼 RDV comptable : ${d}`);
+  }
+  if (a.sport === 'yes') prefs.push(`🏃 Sport : ${a.sportFreq||'2'} séance(s)/semaine`);
+  if (a.proTime) {
+    const t = {morning:'matin',afternoon:'après-midi',flex:'flexibles'}[a.proTime];
+    prefs.push(`💻 RDV pro : ${t}`);
+  }
+  if (a.weekend === 'full') prefs.push('🏖️ Week-end : totalement bloqué');
+  else if (a.weekend === 'sun') prefs.push('🏖️ Dimanche : bloqué');
+
+  body.innerHTML += `
+    <div class="conv-msg received" style="max-width:95%; background:#e8f5e9; border:2px solid var(--g-green);">
+      <div style="font-weight:600; margin-bottom:10px;">✅ Configuration terminée !</div>
+      <div style="font-size:12px; line-height:1.6;">
+        Voici vos préférences enregistrées :<br><br>
+        ${prefs.map(p => '• ' + p).join('<br>')}
+      </div>
+      <div style="margin-top:12px; font-size:11px; color:var(--text-sec); font-style:italic;">
+        Ces préférences guideront l'IA TimeCool pour vous proposer uniquement les créneaux qui vous conviennent.
+      </div>
+    </div>
+    <div style="display:flex; flex-wrap:wrap; gap:8px; margin:10px 0 18px;">
+      <button style="padding:10px 16px; border:2px solid var(--g-green); background:var(--g-green); color:white; border-radius:20px; font-size:13px; font-weight:500; cursor:pointer;" onclick="showToast('✅ Préférences sauvegardées');navigate('settings')">✅ Terminer</button>
+    </div>`;
+  body.scrollTop = body.scrollHeight;
+}
+
+// ═══ SETTINGS PAGE ═══
+function renderSettings() {
+  document.getElementById('settingsContent').innerHTML = `
+    <div style="background:linear-gradient(135deg,#e8f0fe,#e0f2f1); padding:20px; border-radius:14px; margin-bottom:16px;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div style="width:48px; height:48px; border-radius:50%; background:linear-gradient(135deg,var(--g-blue),var(--g-green)); display:flex; align-items:center; justify-content:center; font-size:22px;">🤖</div>
+        <div style="flex:1;">
+          <div style="font-size:15px; font-weight:600;">Assistant TimeCool</div>
+          <div style="font-size:12px; color:var(--text-sec);">Configurez votre agenda en 3 minutes</div>
+        </div>
+      </div>
+      <button style="width:100%; margin-top:14px; padding:12px; background:var(--g-blue); color:white; border:none; border-radius:10px; font-size:13px; font-weight:500; cursor:pointer;" onclick="startAssistant()">🚀 Lancer l'assistant</button>
+    </div>
+
+    <div style="background:#fff; border:1px solid var(--border); border-radius:12px; overflow:hidden; margin-bottom:16px;">
+      <div style="padding:14px 16px; background:var(--bg-soft); font-size:12px; font-weight:600; text-transform:uppercase; color:var(--text-sec);">Notifications</div>
+      <div style="padding:12px 16px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+        <div><div style="font-size:14px;">Rappels avant RDV</div><div style="font-size:11px; color:var(--text-sec);">1 heure avant</div></div>
+        <div style="width:40px; height:22px; background:var(--g-blue); border-radius:11px; position:relative;"><div style="position:absolute; right:2px; top:2px; width:18px; height:18px; background:white; border-radius:50%;"></div></div>
+      </div>
+      <div style="padding:12px 16px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+        <div><div style="font-size:14px;">Alertes retards</div><div style="font-size:11px; color:var(--text-sec);">Temps réel</div></div>
+        <div style="width:40px; height:22px; background:var(--g-blue); border-radius:11px; position:relative;"><div style="position:absolute; right:2px; top:2px; width:18px; height:18px; background:white; border-radius:50%;"></div></div>
+      </div>
+    </div>
+
+    <div style="background:#fff; border:1px solid var(--border); border-radius:12px; overflow:hidden; margin-bottom:16px;">
+      <div style="padding:14px 16px; background:var(--bg-soft); font-size:12px; font-weight:600; text-transform:uppercase; color:var(--text-sec);">Confidentialité</div>
+      <div style="padding:12px 16px; border-top:1px solid var(--border);">
+        <div style="font-size:13px; color:var(--g-green); font-weight:500;">🔒 Chiffrement E2E activé</div>
+        <div style="font-size:11px; color:var(--text-sec); margin-top:4px;">Vos données sont invisibles — même pour TimeCool</div>
+      </div>
+    </div>
+
+    <div style="text-align:center; padding:20px; font-size:11px; color:var(--text-sec);">
+      TimeCool v4 — Démo Investisseurs<br>
+      "Le temps est la seule ressource que l'on ne peut pas fabriquer"
+    </div>
+  `;
+}
+
+// ═══ GROUP RDV (4 agendas en 1 clic) ═══
+function openGroupRdv() {
+  document.getElementById('groupModal').classList.add('open');
+  document.getElementById('groupBody').innerHTML = `
+    <div style="padding:16px 0;">
+      <div style="font-size:14px; margin-bottom:10px; font-weight:500;">👥 Participants au RDV</div>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        ${['👤 Jean Dupont','👤 Marie Dupont','🦷 Dr. Martin','⚖️ Me. Blanc'].map(p => `
+          <div style="padding:10px 14px; background:#f0f7ff; border:1px solid var(--g-blue); border-radius:10px; font-size:13px; color:var(--g-blue); font-weight:500;">${p}</div>
+        `).join('')}
+      </div>
+      <div style="margin-top:20px; padding:16px; background:#e8f0fe; border-radius:12px;">
+        <div style="font-size:13px; color:var(--g-blue); font-weight:500; margin-bottom:8px;">🧠 Analyse IA TimeCool</div>
+        <div style="font-size:12px; color:var(--text-sec);">L'IA consulte simultanément les 4 agendas de manière confidentielle et cherche un créneau commun compatible avec les préférences de chacun.</div>
+      </div>
+      <button style="width:100%; margin-top:16px; padding:14px; background:var(--g-blue); color:white; border:none; border-radius:12px; font-size:14px; font-weight:500; cursor:pointer;" onclick="runGroupSearch()">🔍 Trouver le créneau commun</button>
+      <div id="groupResult" style="margin-top:16px;"></div>
+    </div>`;
+}
+function closeGroupModal() { document.getElementById('groupModal').classList.remove('open'); }
+
+function runGroupSearch() {
+  const result = document.getElementById('groupResult');
+  result.innerHTML = `
+    <div class="ai-search">
+      <div style="font-size:24px;">🧠</div>
+      <div class="ai-dots"><span></span><span></span><span></span><span></span></div>
+      <div class="ai-text">Synchronisation des 4 agendas…</div>
+      <div style="font-size:11px; color:var(--text-sec); margin-top:8px;">Analyse confidentielle en cours</div>
+    </div>`;
+  setTimeout(() => {
+    result.innerHTML = `
+      <div style="padding:14px; background:#e8f5e9; border:2px solid var(--g-green); border-radius:12px;">
+        <div style="font-size:13px; color:var(--g-green); font-weight:600; margin-bottom:10px;">✅ 2 créneaux communs trouvés</div>
+        <button style="width:100%; padding:12px; background:#fff; border:2px solid var(--g-blue); color:var(--g-blue); border-radius:10px; font-weight:600; cursor:pointer; margin-bottom:8px;" onclick="confirmGroupSlot('Jeudi 30 avril — 10h00')">📅 Jeudi 30 avril — 10h00</button>
+        <button style="width:100%; padding:12px; background:#fff; border:2px solid var(--g-blue); color:var(--g-blue); border-radius:10px; font-weight:600; cursor:pointer;" onclick="confirmGroupSlot('Mardi 5 mai — 14h30')">📅 Mardi 5 mai — 14h30</button>
+        <div style="font-size:11px; color:var(--text-sec); margin-top:10px; text-align:center; font-style:italic;">Créneaux respectant les disponibilités des 4 participants</div>
+      </div>`;
+  }, 2500);
+}
+function confirmGroupSlot(slot) {
+  closeGroupModal();
+  showToast('✅ RDV synchronisé dans les 4 agendas : ' + slot);
+}
+
+// ═══ "PRENDRE RDV" on pros list ═══
+function takeAppointment(proName) {
+  const modal = document.getElementById('createModal');
+  document.getElementById('newEvtTitle').value = '🦷 ' + proName;
+  document.getElementById('newEvtType').value = 'red';
+  showToast('🧠 L\'IA TimeCool cherche un créneau...');
+  setTimeout(() => {
+    const body = document.getElementById('emBody');
+    // Open simpler flow using event modal style
+    document.getElementById('emTitle').textContent = 'Prendre RDV — ' + proName;
+    document.getElementById('emBody').innerHTML = `
+      <div class="ai-search" style="margin:0 0 14px;">
+        <div style="font-size:24px;">🧠</div>
+        <div class="ai-text">Recherche de créneaux compatibles…</div>
+      </div>
+      <div style="padding:8px 0;">
+        <div style="font-size:12px; color:var(--text-sec); margin-bottom:10px;">Créneaux respectant vos préférences :</div>
+        <button style="width:100%; padding:12px; background:#fff; border:2px solid var(--g-blue); color:var(--g-blue); border-radius:10px; font-weight:600; cursor:pointer; margin-bottom:8px;" onclick="confirmAppt('${proName}','Mardi 28 avril — 14h00','2026-04-28',14,0)">📅 Mardi 28 avril — 14h00</button>
+        <button style="width:100%; padding:12px; background:#fff; border:2px solid var(--g-blue); color:var(--g-blue); border-radius:10px; font-weight:600; cursor:pointer; margin-bottom:8px;" onclick="confirmAppt('${proName}','Jeudi 30 avril — 14h30','2026-04-30',14,30)">📅 Jeudi 30 avril — 14h30</button>
+        <button style="width:100%; padding:12px; background:#fff; border:2px solid var(--g-blue); color:var(--g-blue); border-radius:10px; font-weight:600; cursor:pointer;" onclick="confirmAppt('${proName}','Mardi 5 mai — 14h00','2026-05-05',14,0)">📅 Mardi 5 mai — 14h00</button>
+      </div>
+      <div style="margin-top:10px; padding:10px; background:#e8f0fe; border-radius:8px; font-size:11px; color:var(--g-blue); text-align:center;">
+        🔒 Le pro ne voit jamais votre agenda — seulement vos créneaux libres
+      </div>`;
+    document.getElementById('emActions').innerHTML = `<button class="btn-secondary" onclick="closeEventModal()" style="flex:1;">Fermer</button>`;
+    document.getElementById('eventModal').classList.add('open');
+  }, 800);
+}
+
+function confirmAppt(proName, label, date, h, m) {
+  closeEventModal();
+  events.push({
+    date, startH:h, startM:m, endH:h+1, endM:m,
+    title: '🦷 ' + proName, cat:'red', mode:'user', id:'appt_'+Date.now()
+  });
+  showToast('✅ RDV confirmé : ' + label);
+  if (currentPage==='calendar') render();
+}
+
+// ═══ Override renderPros to add "Prendre RDV" button ═══
+function renderPros() {
+  const isUser = mode==='user';
+  document.getElementById('prosTitle').textContent = isUser?'Mes Professionnels':'Mes Clients';
+  document.getElementById('prosSubtitle').textContent = isUser?'Vos professionnels de confiance':'🔒 Confidentialité garantie';
+  document.getElementById('searchBar').classList.toggle('hidden', !isUser);
+  const list = document.getElementById('prosList');
+  if (isUser) {
+    list.innerHTML = `
+      <div style="padding:14px; background:linear-gradient(135deg,#fff4e0,#e8f5e9); border-radius:12px; margin-bottom:14px; cursor:pointer;" onclick="openGroupRdv()">
+        <div style="font-size:14px; font-weight:600; color:#c17900;">🎯 RDV de groupe multi-agendas</div>
+        <div style="font-size:11px; color:var(--text-sec); margin-top:4px;">Synchronisez plusieurs agendas en 1 clic grâce à l'IA TimeCool</div>
+      </div>
+      ${userPros.map(p => `
+        <div class="card" style="cursor:default;">
+          <div class="card-avatar" style="background:${p.color};">${p.icon}</div>
+          <div class="card-body">
+            <div class="card-title">${p.name}</div>
+            <div class="card-sub">${p.job} • ${p.city}</div>
+          </div>
+          <button style="padding:8px 14px; background:var(--g-blue); color:white; border:none; border-radius:18px; font-size:12px; font-weight:500; cursor:pointer; white-space:nowrap;" onclick="takeAppointment('${p.name}')">📅 Prendre RDV</button>
+        </div>`).join('')}`;
+  } else {
+    list.innerHTML = proClients.map(c => `
+      <div class="card" onclick="showClientDetail(${c.id})">
+        <div class="card-avatar" style="background:linear-gradient(135deg, var(--g-blue), var(--g-purple));">${c.name.split(' ').map(n=>n[0]).slice(0,2).join('')}</div>
+        <div class="card-body">
+          <div class="card-title">${c.name}</div>
+          <div class="card-sub">${c.age} ans • ${c.rdvs} RDV</div>
+        </div>
+      </div>`).join('');
+  }
+}
+
+// ═══ Update menu to include Settings ═══
+menuItems.user.push({id:'settings', icon:'⚙️', label:'Paramètres'});
+menuItems.pro.push({id:'settings', icon:'⚙️', label:'Paramètres'});
+
+// Override navigate to handle new pages
+const origNavigate = navigate;
+navigate = function(page) {
+  currentPage = page;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const el = document.getElementById('page-' + page);
+  if (el) el.classList.add('active');
+  document.getElementById('sideMenu').classList.remove('open');
+  document.getElementById('menuOverlay').classList.remove('open');
+  if (page==='calendar') render();
+  else if (page==='profile') renderProfile();
+  else if (page==='pros') renderPros();
+  else if (page==='messages') renderMessages();
+  else if (page==='dashboard') renderDashboard();
+  else if (page==='premium') renderPremium();
+  else if (page==='settings') renderSettings();
+};
+
+// Override switchMode to update profile selector
+const origSwitchMode = switchMode;
+switchMode = function(m) {
+  mode = m;
+  document.getElementById('btnModeUser').classList.toggle('active', m==='user');
+  document.getElementById('btnModePro').classList.toggle('active', m==='pro');
+  const avatar = document.getElementById('headerAvatar');
+  avatar.className = 'avatar ' + (m==='user'?'avatar-user':'avatar-pro');
+  const curProf = m==='user' ? profilesData.user[currentProfile.user] : profilesData.pro[currentProfile.pro];
+  avatar.textContent = curProf.initials;
+  document.getElementById('menuSubtitle').textContent = curProf.name + (m==='user'?' — Particulier':' — Professionnel');
+  updateProfileSelector();
+  renderMenu();
+  updateBadges();
+  if (currentPage==='calendar') render();
+  else if (currentPage==='profile') renderProfile();
+  else if (currentPage==='pros') renderPros();
+  else if (currentPage==='messages') renderMessages();
+  else if (currentPage==='dashboard') renderDashboard();
+  else if (currentPage==='premium') renderPremium();
+  else if (currentPage==='settings') renderSettings();
+  showToast(m==='user'?'👤 Mode Particulier':'💼 Mode Professionnel');
+};
+
+// ═══ INIT v4 ═══
+updateProfileSelector();
+renderMenu();
+updateBadges();
+render();
+window.addEventListener('resize', () => { if (currentView==='week' && currentPage==='calendar') render(); });
+</script>
+
+</body>
+</html>

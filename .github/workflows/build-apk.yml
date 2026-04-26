@@ -1,0 +1,57 @@
+name: Build TimeCool APK (debug, signé)
+
+# Workflow GitHub Actions : à chaque push sur main, compile une APK debug,
+# la signe automatiquement avec la clé debug, et la rend téléchargeable
+# en tant qu'artifact pendant 30 jours.
+#
+# Pour récupérer l'APK :
+# 1. Pusher ce dossier sur un repo GitHub
+# 2. Onglet "Actions" → choisir le run le plus récent
+# 3. Section "Artifacts" → télécharger "TimeCool-debug-apk"
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:   # Permet de lancer manuellement
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.5'
+
+      - name: Build debug APK
+        run: gradle assembleDebug --no-daemon
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: TimeCool-debug-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30
+
+      - name: Create GitHub Release (sur tag)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: app/build/outputs/apk/debug/app-debug.apk
+          name: TimeCool ${{ github.ref_name }}
+          body: |
+            APK de test TimeCool — version ${{ github.ref_name }}.
+            Installez-la sur Android (autoriser les sources inconnues si demandé).
