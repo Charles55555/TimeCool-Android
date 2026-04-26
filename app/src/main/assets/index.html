@@ -275,6 +275,17 @@ body { display:flex; flex-direction:column; }
 .search-action-primary { background:var(--g-blue); color:white; border-color:var(--g-blue); }
 .search-action-ext { background:#fff4e0; color:#b26a00; border-color:var(--g-yellow); }
 .search-invite { font-size:11px; color:var(--g-blue); margin-top:10px; text-align:center; padding:6px; background:#f0f7ff; border-radius:8px; cursor:pointer; }
+.search-chips { display:flex; gap:6px; padding:8px 16px 12px; background:#fff; border-bottom:1px solid var(--border); overflow-x:auto; -webkit-overflow-scrolling:touch; }
+.search-chips::-webkit-scrollbar { display:none; }
+.chip { flex:0 0 auto; padding:8px 12px; border:1px solid var(--border); background:#fff; border-radius:20px; font-size:12px; font-weight:500; color:var(--text); cursor:pointer; white-space:nowrap; }
+.chip:hover, .chip:active { background:#e8f0fe; color:var(--g-blue); border-color:var(--g-blue); }
+.loading-state { padding:40px 16px; text-align:center; color:var(--text-sec); font-size:14px; }
+.loading-state .spinner { display:inline-block; width:20px; height:20px; border:2px solid var(--border); border-top-color:var(--g-blue); border-radius:50%; animation:spin 0.8s linear infinite; margin-right:8px; vertical-align:middle; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.empty-search { padding:30px 20px; text-align:center; color:var(--text-sec); font-size:13px; line-height:1.6; background:#f8f9fa; border-radius:12px; margin:8px 0; }
+.real-banner { padding:10px 12px; background:linear-gradient(90deg, #e8f5e9, #e3f2fd); border-radius:10px; margin-bottom:12px; font-size:12px; color:var(--text); display:flex; align-items:center; gap:8px; }
+.real-banner-dot { width:8px; height:8px; background:var(--g-green); border-radius:50%; box-shadow:0 0 0 3px rgba(52,168,83,0.2); animation:pulse 2s ease-in-out infinite; }
+@keyframes pulse { 50% { box-shadow:0 0 0 6px rgba(52,168,83,0.05); } }
 
 .premium-screen { padding:20px 16px; }
 .premium-hero { background:linear-gradient(135deg, #fff4e0, #e8f5e9); padding:24px; border-radius:16px; text-align:center; margin-bottom:16px; }
@@ -379,8 +390,18 @@ body { display:flex; flex-direction:column; }
     <div class="page-subtitle" id="prosSubtitle">Vos professionnels de confiance</div>
   </div>
   <div class="search-bar" id="searchBar">
-    <input type="text" class="search-input" id="searchInput" placeholder="🔍 Rechercher un métier (ex: dermatologue)">
-    <button class="search-btn" onclick="doSearch()">Chercher</button>
+    <input type="text" class="search-input" id="searchInput" placeholder="🔍 Métier (dentiste, médecin, kiné...)" onkeydown="if(event.key==='Enter')realSearch();">
+    <button class="search-btn" onclick="realSearch()">📍 Près de moi</button>
+  </div>
+  <div class="search-chips" id="searchChips">
+    <button class="chip" onclick="quickSearch('dentiste')">🦷 Dentiste</button>
+    <button class="chip" onclick="quickSearch('médecin')">⚕️ Médecin</button>
+    <button class="chip" onclick="quickSearch('pharmacie')">💊 Pharmacie</button>
+    <button class="chip" onclick="quickSearch('kiné')">🦴 Kiné</button>
+    <button class="chip" onclick="quickSearch('ophtalmo')">👁️ Ophtalmo</button>
+    <button class="chip" onclick="quickSearch('vétérinaire')">🐾 Vétérinaire</button>
+    <button class="chip" onclick="quickSearch('opticien')">👓 Opticien</button>
+    <button class="chip" onclick="quickSearch('psychologue')">🧠 Psy</button>
   </div>
   <div class="main"><div class="page-content" id="prosList"></div></div>
 </div>
@@ -1102,43 +1123,160 @@ function showClientDetail(id) {
 }
 function closeClientModal() { document.getElementById('clientModal').classList.remove('open'); }
 
-// ═══ SEARCH ═══
-function doSearch() {
-  const q = document.getElementById('searchInput').value.trim().toLowerCase();
-  if (!q) { renderPros(); return; }
-  // Simulate search results
-  const results = [
-    {name:'Dr. Caroline Vidal', job:'Dermatologue', addr:'8 rue Saint-Honoré, Paris 1er', dist:'1,2 km', phone:'01 42 33 44 55', email:'cabinet@dr-vidal.fr', partner:true, slot:'Mardi 21 avril 14h30'},
-    {name:'Dr. Michel Bernard', job:'Dermatologue', addr:'15 boulevard Haussmann, Paris 9e', dist:'2,8 km', phone:'01 45 66 77 88', email:'contact@dr-bernard.fr', partner:false, doctolib:true},
-    {name:'Dr. Sylvie Lambert', job:'Dermatologue', addr:'22 avenue de l\'Opéra, Paris 1er', dist:'3,1 km', phone:'01 47 88 99 00', email:'dr.lambert@cabinet.fr', partner:false}
-  ];
+// ═══ SEARCH RÉEL — géoloc HTML5 + OpenStreetMap/Overpass ═══
+const PRO_TYPES = {
+  'dentiste':         {tag:'"amenity"="dentist"',                       label:'dentistes',          icon:'🦷'},
+  'médecin':          {tag:'"amenity"="doctors"',                       label:'médecins',           icon:'⚕️'},
+  'docteur':          {tag:'"amenity"="doctors"',                       label:'médecins',           icon:'⚕️'},
+  'généraliste':      {tag:'"amenity"="doctors"',                       label:'médecins',           icon:'⚕️'},
+  'pharmacie':        {tag:'"amenity"="pharmacy"',                      label:'pharmacies',         icon:'💊'},
+  'pharmacien':       {tag:'"amenity"="pharmacy"',                      label:'pharmacies',         icon:'💊'},
+  'kiné':             {tag:'"healthcare"="physiotherapist"',            label:'kinésithérapeutes',  icon:'🦴'},
+  'kinésithérapeute': {tag:'"healthcare"="physiotherapist"',            label:'kinésithérapeutes',  icon:'🦴'},
+  'ostéo':            {tag:'"healthcare"="alternative"',                label:'ostéopathes',        icon:'🦴'},
+  'ostéopathe':       {tag:'"healthcare"="alternative"',                label:'ostéopathes',        icon:'🦴'},
+  'ophtalmo':         {tag:'"healthcare:speciality"="ophthalmology"',   label:'ophtalmologues',     icon:'👁️'},
+  'ophtalmologue':    {tag:'"healthcare:speciality"="ophthalmology"',   label:'ophtalmologues',     icon:'👁️'},
+  'opticien':         {tag:'"shop"="optician"',                         label:'opticiens',          icon:'👓'},
+  'vétérinaire':      {tag:'"amenity"="veterinary"',                    label:'vétérinaires',       icon:'🐾'},
+  'véto':             {tag:'"amenity"="veterinary"',                    label:'vétérinaires',       icon:'🐾'},
+  'hôpital':          {tag:'"amenity"="hospital"',                      label:'hôpitaux',           icon:'🏥'},
+  'clinique':         {tag:'"amenity"="clinic"',                        label:'cliniques',          icon:'🏥'},
+  'sage-femme':       {tag:'"healthcare"="midwife"',                    label:'sages-femmes',       icon:'👶'},
+  'psychologue':      {tag:'"healthcare"="psychotherapist"',            label:'psychologues',       icon:'🧠'},
+  'psy':              {tag:'"healthcare"="psychotherapist"',            label:'psychologues',       icon:'🧠'},
+  'dermato':          {tag:'"healthcare:speciality"="dermatology"',     label:'dermatologues',      icon:'⚕️'},
+  'dermatologue':     {tag:'"healthcare:speciality"="dermatology"',     label:'dermatologues',      icon:'⚕️'},
+  'cardiologue':      {tag:'"healthcare:speciality"="cardiology"',      label:'cardiologues',       icon:'❤️'},
+  'gynéco':           {tag:'"healthcare:speciality"="gynaecology"',     label:'gynécologues',       icon:'⚕️'},
+  'gynécologue':      {tag:'"healthcare:speciality"="gynaecology"',     label:'gynécologues',       icon:'⚕️'},
+  'orl':              {tag:'"healthcare:speciality"="otolaryngology"',  label:'ORL',                icon:'👂'},
+  'orthodontiste':    {tag:'"healthcare:speciality"="orthodontics"',    label:'orthodontistes',     icon:'🦷'},
+  'pédiatre':         {tag:'"healthcare:speciality"="paediatrics"',     label:'pédiatres',          icon:'👶'},
+  'urgences':         {tag:'"emergency"="yes"',                         label:'urgences',           icon:'🚨'}
+};
+
+function _haversineKm(lat1, lng1, lat2, lng2) {
+  const R = 6371, toRad = x => x * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1), dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function _matchProType(query) {
+  const q = (query || '').trim().toLowerCase();
+  if (!q) return null;
+  if (PRO_TYPES[q]) return PRO_TYPES[q];
+  for (const key of Object.keys(PRO_TYPES)) {
+    if (q.includes(key) || key.includes(q)) return PRO_TYPES[key];
+  }
+  return null;
+}
+
+function quickSearch(term) {
+  const input = document.getElementById('searchInput');
+  if (input) input.value = term;
+  realSearch(term);
+}
+
+async function realSearch(forced) {
   const list = document.getElementById('prosList');
+  const raw = forced || (document.getElementById('searchInput') ? document.getElementById('searchInput').value : '') || 'dentiste';
+  const proType = _matchProType(raw);
+  if (!proType) {
+    list.innerHTML = `<div class="empty-search">Aucun métier reconnu pour "<b>${raw}</b>".<br>Essayez : dentiste, médecin, pharmacie, kiné, ophtalmo, vétérinaire, opticien, psy, dermato, cardio, gynéco, ORL, pédiatre, sage-femme, urgences.</div>`;
+    return;
+  }
+  list.innerHTML = `<div class="loading-state"><span class="spinner"></span>📍 Demande de votre position...</div>`;
+  if (!navigator.geolocation) {
+    list.innerHTML = `<div class="empty-search">⚠️ La géolocalisation n'est pas disponible sur votre appareil.</div>`;
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(
+    pos => _fetchOverpass(pos.coords, proType),
+    err => {
+      const msgs = {1:'refusée par vous', 2:'indisponible (GPS hors-ligne ?)', 3:'délai dépassé'};
+      const why = msgs[err.code] || err.message;
+      list.innerHTML = `<div class="empty-search">⚠️ Géolocalisation ${why}.<br><br>Pour activer : <b>Paramètres Android → Applications → TimeCool → Autorisations → Localisation</b>.<br><br><button class="search-action search-action-primary" onclick="_demoFallback('${proType.label}','${proType.icon}')">Voir une démo (Paris)</button></div>`;
+    },
+    {timeout: 12000, enableHighAccuracy: true, maximumAge: 60000}
+  );
+}
+
+async function _fetchOverpass(coords, proType) {
+  const list = document.getElementById('prosList');
+  const lat = coords.latitude, lng = coords.longitude;
+  list.innerHTML = `<div class="loading-state"><span class="spinner"></span>${proType.icon} Recherche des ${proType.label} dans un rayon de 3 km...</div>`;
+  const tryRadii = [3000, 8000, 25000];
+  let elements = [], usedRadius = 0, lastErr = null;
+  for (const radius of tryRadii) {
+    const q = `[out:json][timeout:20];(nwr[${proType.tag}](around:${radius},${lat},${lng}););out center 60;`;
+    try {
+      const resp = await fetch('https://overpass-api.de/api/interpreter', {
+        method: 'POST',
+        body: 'data=' + encodeURIComponent(q),
+        headers: {'Content-Type':'application/x-www-form-urlencoded'}
+      });
+      if (!resp.ok) { lastErr = 'HTTP ' + resp.status; continue; }
+      const data = await resp.json();
+      elements = data.elements || [];
+      usedRadius = radius;
+      if (elements.length > 0) break;
+    } catch (e) { lastErr = e.message; }
+  }
+  if (lastErr && !elements.length) {
+    list.innerHTML = `<div class="empty-search">⚠️ Erreur OpenStreetMap : ${lastErr}<br><br>Réessayez dans quelques secondes (le serveur Overpass est gratuit, parfois lent).</div>`;
+    return;
+  }
+  const results = elements.map(el => {
+    const elLat = el.lat || (el.center && el.center.lat);
+    const elLng = el.lon || (el.center && el.center.lon);
+    if (!elLat || !elLng) return null;
+    const tags = el.tags || {};
+    const addrParts = [tags['addr:housenumber'], tags['addr:street']].filter(Boolean).join(' ');
+    const cityParts = [tags['addr:postcode'], tags['addr:city']].filter(Boolean).join(' ');
+    const fullAddr = [addrParts, cityParts].filter(Boolean).join(', ');
+    return {
+      id: el.id,
+      name: tags.name || tags['contact:name'] || tags.operator || `${proType.label.replace(/s$/,'').replace(/^./, c=>c.toUpperCase())} (sans nom)`,
+      addr: fullAddr || 'Adresse non renseignée',
+      phone: tags.phone || tags['contact:phone'] || null,
+      website: tags.website || tags['contact:website'] || null,
+      email: tags.email || tags['contact:email'] || null,
+      opening: tags.opening_hours || null,
+      dist: _haversineKm(lat, lng, elLat, elLng),
+      lat: elLat, lng: elLng
+    };
+  }).filter(Boolean).sort((a,b) => a.dist - b.dist);
+  _renderRealResults(results, proType, usedRadius);
+}
+
+function _renderRealResults(results, proType, radius) {
+  const list = document.getElementById('prosList');
+  if (!results.length) {
+    list.innerHTML = `<div class="empty-search">Aucun ${proType.label.replace(/s$/,'')} trouvé dans un rayon de ${radius/1000} km.<br>Essayez un autre métier ou vérifiez votre connexion internet.</div>`;
+    return;
+  }
+  const radiusLabel = radius < 1000 ? `${radius} m` : `${radius/1000} km`;
   list.innerHTML = `
-    <div style="padding:12px; background:#e8f0fe; border-radius:10px; margin-bottom:12px; font-size:12px; color:var(--g-blue);">
-      <b>${results.length} dermatologues trouvés</b> à proximité de votre adresse
-    </div>
-    ${results.map(r => `
-      <div class="search-result ${r.partner?'partner':''}">
-        ${r.partner?'<div class="partner-badge">⭐ PARTENAIRE TIMECOOL</div>':''}
-        <div class="search-name">${r.name}</div>
-        <div class="search-job">${r.job}</div>
-        <div class="search-addr">📍 ${r.addr} (${r.dist})</div>
-        <div class="search-contact">📞 ${r.phone} • 📧 ${r.email}</div>
-        ${r.partner?`<div style="margin-top:8px; font-size:12px; color:var(--g-green); font-weight:500;">⚡ Prochain RDV : ${r.slot}</div>`:''}
-        <div class="search-actions">
-          ${r.partner
-            ? `<button class="search-action search-action-primary" onclick="showToast('RDV en 1 clic — démo')">📅 Prendre RDV en 1 clic</button>`
-            : `<button class="search-action" onclick="showToast('Appel ${r.phone}')">📞 Appeler</button>
-               <button class="search-action" onclick="showToast('Email ${r.email}')">📧 Email</button>
-               ${r.doctolib?`<button class="search-action search-action-ext" onclick="showToast('Lien Doctolib')">🔗 Doctolib</button>`:''}`
-          }
-        </div>
-        ${!r.partner?`<div class="search-invite" onclick="showToast('Invitation envoyée !')">💌 Inviter ce pro à rejoindre TimeCool</div>`:''}
-      </div>
-    `).join('')}
-    <div style="padding:12px; margin-top:12px; font-size:11px; color:var(--text-sec); text-align:center; font-style:italic;">
-      TimeCool s'intègre à votre écosystème — nous n'imposons rien, nous facilitons tout.
-    </div>`;
+    <div class="real-banner"><span class="real-banner-dot"></span><div><b>${results.length} ${proType.label}</b> trouvés dans un rayon de ${radiusLabel} • Données <b>OpenStreetMap</b> en temps réel</div></div>
+    ${results.slice(0, 30).map(r => {
+      const distStr = r.dist < 1 ? `${Math.round(r.dist*1000)} m` : `${r.dist.toFixed(1)} km`;
+      const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.lat},${r.lng}`;
+      const safeName = (r.name || '').replace(/[<>'"&]/g, c => ({'<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','&':'&amp;'}[c]));
+      const escName = safeName.replace(/'/g, "\'");
+      return `<div class="search-result"><div class="search-name">${proType.icon} ${safeName}</div><div class="search-job">${proType.label.replace(/s$/, '').replace(/^./, c => c.toUpperCase())}</div><div class="search-addr" style="display:flex; align-items:center;"><span style="flex:1;">📍 ${r.addr}</span><span style="color:var(--g-blue); font-weight:600; margin-left:8px;">${distStr}</span></div>${r.opening ? `<div class="search-contact">🕐 ${r.opening}</div>` : ''}${r.phone   ? `<div class="search-contact">📞 ${r.phone}</div>`   : ''}${r.email   ? `<div class="search-contact">📧 ${r.email}</div>`   : ''}<div class="search-actions">${r.phone   ? `<a class="search-action search-action-primary" href="tel:${encodeURIComponent(r.phone)}">📞 Appeler</a>` : ''}<a class="search-action" href="${mapsUrl}" target="_blank" rel="noopener">🗺️ Itinéraire</a>${r.website ? `<a class="search-action search-action-ext" href="${r.website}" target="_blank" rel="noopener">🔗 Site web</a>` : ''}</div><div class="search-invite" onclick="showToast('💌 Invitation envoyée à ${escName}')">💌 Inviter ce pro à rejoindre TimeCool</div></div>`;
+    }).join('')}
+    <div style="padding:12px; margin-top:12px; font-size:11px; color:var(--text-sec); text-align:center; font-style:italic;">Données <a href="https://www.openstreetmap.org/copyright" target="_blank" style="color:var(--text-sec);">© OpenStreetMap contributors</a> • Mises à jour par la communauté</div>`;
+}
+
+function _demoFallback(label, icon) {
+  const fakeData = [
+    {name:'Dr. Caroline Vidal', addr:'8 rue Saint-Honoré, 75001 Paris', dist:1.2, phone:'01 42 33 44 55', website:null},
+    {name:'Dr. Michel Bernard', addr:'15 bd Haussmann, 75009 Paris', dist:2.8, phone:'01 45 66 77 88', website:'https://example.fr'},
+    {name:'Dr. Sylvie Lambert', addr:"22 av. de l'Opéra, 75001 Paris", dist:3.1, phone:'01 47 88 99 00', website:null}
+  ];
+  _renderRealResults(fakeData.map(r=>({...r, lat:48.8566, lng:2.3522, opening:null, email:null})), {label, icon, tag:''}, 5000);
 }
 
 // ═══ MESSAGES ═══
