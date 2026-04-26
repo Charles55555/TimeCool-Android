@@ -34,3 +34,4 @@ android {
 
 dependencies {
     // Aucune dépendance — on utilise uniquement les API Android natives (WebView).
+}
